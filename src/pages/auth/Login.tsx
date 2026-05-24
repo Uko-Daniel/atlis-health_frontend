@@ -60,7 +60,7 @@ export default function Login() {
 
           {/* Logo */}
           <a href="#" className="flex flex-col items-center gap-2 font-medium">
-            <img src="/logo.svg" alt="Atlis Health" className="h-12 w-auto" />
+            <img src="/atlis-logo.svg" alt="Atlis Health" className="h-12 w-auto" />
           </a>
 
           <h1 className="text-xl font-bold text-slate-900">
