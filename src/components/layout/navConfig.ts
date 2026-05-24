@@ -1,7 +1,7 @@
 import {
   LayoutDashboard,
   Users,
-  ClipboardList,
+  CalendarClock,
   FileText,
   LayoutTemplate,
   UserCog,
@@ -46,11 +46,13 @@ export const NAV_ITEMS: NavItem[] = [
     allowedRoles: ['ADMIN', 'DOCTOR', 'NURSES', 'PHARMACIST', 'RECEPTIONIST', 'HIM_OFFICER'],
   },
   {
-    label: 'Orders',
-    path: '/orders',
-    icon: ClipboardList,
-    // Everyone deals with orders in some capacity
-    allowedRoles: ['ADMIN', 'DOCTOR', 'NURSES', 'LAB_TECH', 'RADIOLOGIST', 'PHARMACIST', 'RECEPTIONIST', 'BILLING_OFFICER'],
+    label: 'Appointments',
+    path:  '/appointments',
+    icon:  CalendarClock,
+    allowedRoles: [
+      'ADMIN', 'DOCTOR', 'NURSES',
+      'RECEPTIONIST', 'LAB_TECH', 'RADIOLOGIST',
+    ],
   },
   {
     label: 'Results',

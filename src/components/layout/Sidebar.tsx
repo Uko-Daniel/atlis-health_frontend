@@ -75,7 +75,7 @@ export default function Sidebar() {
             <div className="flex items-center gap-2.5">
               {/* Logo placeholder */}
              <div className="flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 px-5">
-                <img src="/logo.svg" className="h-7 w-auto" />
+                <img src="/atlis-logo.svg" className="h-7 w-auto" />
              </div>
             </div>
           )}

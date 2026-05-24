@@ -5,6 +5,7 @@ import Login          from '@/pages/auth/Login'
 import Dashboard      from '@/pages/dashboard/Dashboard'
 import PatientList    from '@/pages/patients/PatientList'
 import PatientNew     from '@/pages/patients/PatientNew'
+import Appointments from '@/pages/appointments/Appointments'
 
 export default function AppRouter() {
   return (
@@ -20,6 +21,7 @@ export default function AppRouter() {
             <Route path="/dashboard"    element={<Dashboard />} />
             <Route path="/patients"     element={<PatientList />} />
             <Route path="/patients/new" element={<PatientNew />} />
+            <Route path="/appointments" element={<Appointments />} />
             {/* Patient detail — next session */}
             {/* <Route path="/patients/:id/*" element={<PatientDetail />} /> */}
           </Route>
