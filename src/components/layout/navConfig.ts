@@ -6,6 +6,7 @@ import {
   LayoutTemplate,
   UserCog,
   Settings,
+  ListChecks,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { StaffRole } from '@/types/auth'
@@ -55,11 +56,19 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
+    label: 'Worklist',
+    path:  '/worklist',
+    icon:  ListChecks,
+    allowedRoles: ['LAB_TECH', 'RADIOLOGIST', 'ADMIN', 'DOCTOR'],
+  },
+  {
     label: 'Results',
-    path: '/results',
-    icon: FileText,
-    // RECEPTIONIST and BILLING_OFFICER never see results — spec is explicit
-    allowedRoles: ['ADMIN', 'DOCTOR', 'NURSES', 'LAB_TECH', 'RADIOLOGIST'],
+    path:  '/results',
+    icon:  FileText,
+    allowedRoles: [
+      'ADMIN', 'DOCTOR', 'LAB_TECH',
+      'RADIOLOGIST', 'HIM_OFFICER',
+    ],
   },
   {
     label: 'Templates',

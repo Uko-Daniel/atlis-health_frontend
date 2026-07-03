@@ -1,49 +1,37 @@
-import { useAuthStore } from '@/stores/authStore'
+import { useAuthStore }   from '@/stores/authStore'
+import GreetingHero       from '@/components/dashboard/GreetingHero'
+import TodayAgenda        from '@/components/dashboard/Today'
+import PriorityQueue      from '@/components/dashboard/PriorityQueue'
+import RecentPatients     from '@/components/dashboard/RecentPatients'
 import { RESULT_BLIND_ROLES } from '@/types/auth'
 
-import GreetingHero         from '@/components/dashboard/GreetingHero'
-import StatsCard            from '@/components/dashboard/StatsCard'
-import LatestPatientCard    from '@/components/dashboard/LatestPatientCard'
-import PeriodTiles          from '@/components/dashboard/PeriodTiles'
-import RecentRegistrations  from '@/components/dashboard/RecentRegistrations'
-import CurrentPatientsGrid  from '@/components/dashboard/CurrentPatientsGrid'
+// Clinical roles — see full dashboard
+const CLINICAL = ['ADMIN', 'DOCTOR', 'NURSES']
 
 export default function Dashboard() {
-  const user         = useAuthStore((s) => s.user)
-  const isResultBlind = user && RESULT_BLIND_ROLES.includes(user.role)
+  const user          = useAuthStore((s) => s.user)
+  const isClinical    = CLINICAL.includes(user?.role ?? '')
+  const isResultBlind = user?.role ? RESULT_BLIND_ROLES.includes(user.role) : false
 
   return (
-    // Full-bleed lavender bg overrides AppLayout's slate-50
-    <div className="-m-6 min-h-full bg-[#EBEBFF] p-6 space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
 
-      {/* ── Greeting ── */}
+      {/* Always visible */}
       <GreetingHero />
+      <TodayAgenda />
 
-      {/* ── Top row: Stats | Latest Patient | Period Tiles ── */}
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* Stats card */}
-        <div className="w-full lg:w-72 shrink-0">
-          <StatsCard />
+      {/* Clinical users: priority queue + recent patients */}
+      {isClinical && (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px]">
+          <PriorityQueue />
+          <RecentPatients />
         </div>
+      )}
 
-        {/* Latest patient */}
-        {!isResultBlind && (
-          <div className="w-full lg:w-56 shrink-0">
-            <LatestPatientCard />
-          </div>
-        )}
-
-        {/* Period tiles — flex-1 so they fill remaining space */}
-        <div className="flex-1">
-          <PeriodTiles />
-        </div>
-      </div>
-
-      {/* ── Recent registrations strip ── */}
-      {!isResultBlind && <RecentRegistrations />}
-
-      {/* ── Current patients grid ── */}
-      {!isResultBlind && <CurrentPatientsGrid />}
+      {/* Non-clinical, non-blind: just recent patients */}
+      {!isClinical && !isResultBlind && (
+        <RecentPatients />
+      )}
 
     </div>
   )

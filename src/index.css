@@ -79,6 +79,40 @@
   --sidebar-ring: oklch(0.56 0.021 213.5);
 }
 
+@theme {
+  --font-sans: "Montserrat Variable", sans-serif;
+
+  /* ── Primary ── */
+  --color-primary:     #5580F4;
+  --color-primary-h:   #3D67F1;
+  --color-primary-50:  #F0F4FF;
+  --color-primary-100: #E0EAFF;
+
+  /* ── Semantic ── */
+  --color-success:     #10B981;
+  --color-success-50:  #ECFDF5;
+  --color-warning:     #F59E0B;
+  --color-warning-50:  #FFFBEB;
+  --color-critical:    #EF4444;
+  --color-critical-50: #FEF2F2;
+
+  /* ── Chart ── */
+  --color-chart-1: #5580F4;
+  --color-chart-2: #0ACDBA;
+  --color-chart-3: #FF8552;
+  --color-chart-4: #9B6DFF;
+
+  /* ── Surface ── */
+  --color-bg:      #F8FAFF;
+  --color-surface: #FFFFFF;
+  --color-border:  #EEF1F8;
+
+  /* ── Typography ── */
+  --color-ink:    #0F172A;
+  --color-muted:  #64748B;
+  --color-subtle: #94A3B8;
+}
+
 @theme inline {
   --font-sans: 'Inter Variable', sans-serif;
   --font-heading: 'Montserrat Variable', sans-serif;

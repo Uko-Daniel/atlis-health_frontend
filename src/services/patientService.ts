@@ -1,5 +1,5 @@
 import api from '@/lib/api'
-import type { Patient, PaginatedPatients } from '@/types/patient'
+import type { Patient, PatientFull, PaginatedPatients } from '@/types/patient'
 
 export interface GetPatientsParams {
   page?:  number
@@ -42,8 +42,8 @@ export async function searchPatients(
 }
 
 // GET /patients/:id  (includes encounters, allergies, medications)
-export async function getPatientById(id: string): Promise<Patient> {
-  const res = await api.get<Patient>(`/patients/${id}`)
+export async function getPatientById(id: string): Promise<PatientFull> {
+  const res = await api.get<PatientFull>(`/patients/${id}`)
   return res.data
 }
 
