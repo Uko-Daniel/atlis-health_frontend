@@ -52,14 +52,14 @@ export const NAV_ITEMS: NavItem[] = [
     icon:  CalendarClock,
     allowedRoles: [
       'ADMIN', 'DOCTOR', 'NURSES',
-      'RECEPTIONIST', 'LAB_TECH', 'RADIOLOGIST',
+      'RECEPTIONIST', 'RADIOLOGIST',
     ],
   },
   {
     label: 'Worklist',
     path:  '/worklist',
     icon:  ListChecks,
-    allowedRoles: ['LAB_TECH', 'RADIOLOGIST', 'ADMIN', 'DOCTOR'],
+    allowedRoles: ['LAB_TECH', 'RADIOLOGIST', 'ADMIN'],
   },
   {
     label: 'Results',

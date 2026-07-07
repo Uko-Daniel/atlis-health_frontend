@@ -176,7 +176,7 @@ export default function AppointmentDetail() {
 
                 <ButtonPill
                   variant="primary"
-                  onClick={() => {}}
+                  onClick={() => navigate(`/encounters/${encounter?.id}`)}
                 >
                   Start Encounter
                 </ButtonPill>

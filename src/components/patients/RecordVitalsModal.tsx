@@ -12,7 +12,6 @@ import { Input }       from '@/components/ui/input'
 import { Label }       from '@/components/ui/label'
 import { ButtonPill }  from '@/components/ui/atoms/ButtonPill'
 import { createVital } from '@/services/vitalsService'
-import type { EncounterWithDetails } from '@/types/patient'
 
 const optionalNumber = z.preprocess(
   (value) => (value === '' || value == null ? undefined : value),
@@ -44,7 +43,7 @@ interface Props {
   open:              boolean
   onClose:           () => void
   patientId:         string
-  activeEncounter?:  EncounterWithDetails
+  activeEncounter?:  { id: string }
 }
 
 function Field({
@@ -84,6 +83,7 @@ export default function RecordVitalsModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patient', patientId] })
       queryClient.invalidateQueries({ queryKey: ['vitals', 'trend', patientId] })
+      queryClient.invalidateQueries({ queryKey: ['vitals', 'encounter', activeEncounter?.id] })
       reset()
       onClose()
     },

@@ -38,7 +38,9 @@ function AgendaCard({
 
   return (
     <div
-      onClick={() => navigate(`/appointments/${enc.id}`)}
+      onClick={() => navigate(
+          enc.stopTime ? `/appointments/${enc.id}` : `/encounters/${enc.id}`
+        )}
       className={cn(
         'shrink-0 w-48 rounded-2xl p-4 cursor-pointer',
         'flex flex-col gap-3 transition-all duration-150',

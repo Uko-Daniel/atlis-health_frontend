@@ -5,6 +5,7 @@ import { ClipboardList, Play, FileWarning } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { getOrdersByStatus, updateOrderStatus } from '@/services/orderService'
 import { createResult } from '@/services/resultService'
+import api from '@/lib/api'
 import { getPatientById } from '@/services/patientService'
 import { flattenToWorklistRows, type WorklistRow } from '@/types/order'
 import { TableCard, type TableColumn } from '@/components/ui/compounds/TableCard'
@@ -44,8 +45,14 @@ export default function DepartmentWorklist() {
     mutationFn: async (row: WorklistRow) => {
       if (!row.templateId) throw new Error('No template configured for this service')
 
-      const patient  = await getPatientById(row.patientId)
-      const recordId = patient.records?.[0]?.id
+      // Resolve record — fetch patient records, create one if missing
+      const patient = await getPatientById(row.patientId)
+      let recordId = patient.records?.[0]?.id
+
+      if (!recordId) {
+        const recordRes = await api.post('/records', { patientId: row.patientId })
+        recordId = recordRes.data.id
+      }
 
       const result = await createResult({
         patientId:  row.patientId,

@@ -15,7 +15,7 @@ export function usePatient(id: string) {
     queryKey:  ['patient', id],
     queryFn:   () => getPatientById(id),
     enabled:   !!id && id !== 'undefined',
-    staleTime: 1000 * 60 * 5, // 5 min — patient header data is stable
+    staleTime: 1000 * 60 * 1, // 1 min
   })
 
   return {

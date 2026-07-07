@@ -52,6 +52,19 @@ export interface DataSchema {
 // Draft — keyed by field.key
 export type DraftData = Record<string, unknown>
 
+export interface EnteredField {
+  fieldId:   string
+  key:       string
+  value:     unknown
+  flag?:     FieldFlag
+  critical?: boolean
+}
+
+export interface DraftGroup {
+  groupId: string
+  fields:  EnteredField[]
+}
+
 // Flag map — keyed by field.key
 export type FlagMap = Record<string, FieldFlag>
 

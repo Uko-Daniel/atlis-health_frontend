@@ -23,6 +23,10 @@ import ResultEditor    from '@/pages/editor/ResultEditor'
 
 import DepartmentWorklist from '@/pages/worklist/DepartmentWorkList'
 import AppointmentDetail from '@/pages/appointments/AppointmentDetails'
+import SignUpRequests from '@/pages/admin/SignUpRequests'
+import Signup from '@/pages/auth/Signup'
+import EncounterWorkspace from '@/pages/encounters/EncounterWorkspace'
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -30,11 +34,13 @@ export default function AppRouter() {
 
         {/* Public */}
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
         {/* Protected */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
 
+            <Route path="/admin/signup-requests" element={<SignUpRequests />} />
             {/* Dashboard */}
             <Route path="/dashboard" element={<Dashboard />} />
 
@@ -63,6 +69,9 @@ export default function AppRouter() {
 
             {/* Worklist */}
             <Route path="/worklist" element={<DepartmentWorklist />} />
+
+            {/* Encounter Workspace */}
+            <Route path="/encounters/:id" element={<EncounterWorkspace />} />
 
             {/* Result editor */}
             <Route path="/editor/:resultId" element={<ResultEditor />} />

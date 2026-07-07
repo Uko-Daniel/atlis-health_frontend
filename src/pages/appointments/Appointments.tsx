@@ -1,7 +1,4 @@
 import { useState } from 'react'
-import { useAuthStore } from '@/stores/authStore'
-import { ButtonPill } from '@/components/ui/atoms/ButtonPill'
-import { CalendarPlus } from 'lucide-react'
 import NewAppointmentModal from '@/components/appointments/NewAppointmentModal'
 import AppointmentListTab  from '@/components/appointments/AppointmentListTab'
 import PastConsultationsTab from '@/components/appointments/PastConsultationsTab'
@@ -16,25 +13,13 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'calendar',     label: 'Calendar' },
 ]
 
-const CAN_CREATE = ['ADMIN', 'DOCTOR', 'NURSES']
 
 export default function Appointments() {
-  const user      = useAuthStore((s) => s.user)
-  const canCreate = user && CAN_CREATE.includes(user.role)
   const [tab, setTab]       = useState<Tab>('appointments')
   const [modalOpen, setModalOpen] = useState(false)
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto">
-
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-2xl font-bold text-[#0F172A]">Appointments</h2>
-        {canCreate && (
-          <ButtonPill variant="primary" icon={CalendarPlus} onClick={() => setModalOpen(true)}>
-            New Appointment
-          </ButtonPill>
-        )}
-      </div>
 
       {/* Tab pills */}
       <div className="flex items-center gap-1 bg-white rounded-2xl border border-[#EEF1F8]

@@ -34,6 +34,14 @@ export async function updateDiagnosis(
   return res.data
 }
 
+// GET /diagnoses/encounter/:encounterId
+export async function getDiagnosesByEncounter(
+  encounterId: string,
+): Promise<DiagnosisSummary[]> {
+  const res = await api.get<DiagnosisSummary[]>(`/diagnoses/encounter/${encounterId}`)
+  return res.data
+}
+
 // GET /diagnoses/patient/:patientId/icd?code=
 export interface IcdResult {
   code:        string

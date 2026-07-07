@@ -15,7 +15,7 @@ import { ButtonPill } from '@/components/ui/atoms/ButtonPill'
 import { Toggle }     from '@/components/ui/atoms/Toggle'
 import { createDiagnosis, searchIcdCodes } from '@/services/diagnosisService'
 import { useDebounce } from '@/hooks/useDebounce'
-import type { EncounterWithDetails, DiagnosisStatus } from '@/types/patient'
+import type { DiagnosisStatus } from '@/types/patient'
 import { cn } from '@/lib/utils'
 
 const schema = z.object({
@@ -36,7 +36,7 @@ interface Props {
   open:             boolean
   onClose:          () => void
   patientId:        string
-  activeEncounter?: EncounterWithDetails
+  activeEncounter?: { id: string }
 }
 
 export default function AddDiagnosisModal({
@@ -62,6 +62,7 @@ export default function AddDiagnosisModal({
     mutationFn: createDiagnosis,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patient', patientId] })
+      queryClient.invalidateQueries({ queryKey: ['diagnoses', 'encounter', activeEncounter?.id] })
       handleClose()
     },
   })
