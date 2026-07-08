@@ -87,7 +87,7 @@ export default function EveeTab() {
               <div className="bg-white/15 rounded-xl px-3 py-2">
                 <p className="text-xs text-white/60">Last Run</p>
                 <p className="text-sm font-bold">
-                  {new Date(latestEvaluation.evaluatedAt).toLocaleDateString('en-NG', {
+                  {new Date(latestEvaluation.createdAt).toLocaleDateString('en-NG', {
                     day: '2-digit', month: 'short',
                   })}
                 </p>
@@ -124,7 +124,7 @@ export default function EveeTab() {
               Latest Evaluation
             </h4>
             <span className="text-xs text-[#94A3B8]">
-              {new Date(latestEvaluation.evaluatedAt).toLocaleString('en-NG', {
+              {new Date(latestEvaluation.createdAt).toLocaleString('en-NG', {
                 day: '2-digit', month: 'short', year: 'numeric',
                 hour: '2-digit', minute: '2-digit',
               })}
@@ -214,7 +214,7 @@ export default function EveeTab() {
             {history.slice(1).map((ev) => (
               <div key={ev.evaluationId} className="flex items-center justify-between px-5 py-3">
                 <span className="text-sm text-[#64748B]">
-                  {new Date(ev.evaluatedAt).toLocaleDateString('en-NG', {
+                  {new Date(ev.createdAt).toLocaleDateString('en-NG', {
                     day: '2-digit', month: 'short', year: 'numeric',
                   })}
                 </span>

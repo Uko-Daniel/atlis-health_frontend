@@ -31,6 +31,7 @@ export interface EveeEvaluationResult {
   mlLabel?:       string
   ruleSetVersion: number
   evaluatedAt:    string
+  createdAt:      string 
 }
 
 export const SEVERITY_ORDER: EveeSeverity[] = ['CRITICAL', 'HIGH', 'MODERATE', 'LOW', 'INFO']
