@@ -43,7 +43,9 @@ export async function searchPatients(
 
 // GET /patients/:id  (includes encounters, allergies, medications)
 export async function getPatientById(id: string): Promise<PatientFull> {
-  const res = await api.get<PatientFull>(`/patients/${id}`)
+  const res = await api.get<PatientFull>(`/patients/${id}`, {
+    params: { full: 'true' },
+  })
   return res.data
 }
 

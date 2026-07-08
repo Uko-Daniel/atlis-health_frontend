@@ -168,7 +168,7 @@ export default function PatientDetail() {
   }
 
   return (
-    <div className="-mt-6 -mx-6">
+    <div className="-mt-6 -mx-6" key={id}>
 
       {/* ── Patient header card ─────────────────────────── */}
       <div className="bg-white border-b border-[#EEF1F8]">
