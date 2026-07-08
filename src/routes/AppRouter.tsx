@@ -24,7 +24,7 @@ import ResultEditor    from '@/pages/editor/ResultEditor'
 import DepartmentWorklist from '@/pages/worklist/DepartmentWorkList'
 import AppointmentDetail from '@/pages/appointments/AppointmentDetails'
 import SignUpRequests from '@/pages/admin/SignUpRequests'
-import Signup from '@/pages/auth/Signup'
+import Signup from '@/pages/auth/SignUp'
 import EncounterWorkspace from '@/pages/encounters/EncounterWorkspace'
 
 export default function AppRouter() {
