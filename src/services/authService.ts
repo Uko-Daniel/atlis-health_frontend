@@ -20,6 +20,7 @@ interface LoginApiResponse {
     canVerify: boolean
     createdAt: string
     updatedAt: string
+    tenantId: string
   }
   token: string
 }
@@ -35,7 +36,7 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
 
   const { staff, token } = res.data
 
-  // Map backend shape → AuthUser shape
+
 const user: AuthUser = {
   sub:        staff.id,
   firstName:  staff.firstName,
@@ -45,6 +46,7 @@ const user: AuthUser = {
   isHOD:      staff.isHOD,
   canVerify:  staff.canVerify,
   email:      staff.email,
+  tenantId:   staff.tenantId,  // ← add this
 }
 
   return { token, user }

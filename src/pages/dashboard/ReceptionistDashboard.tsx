@@ -12,6 +12,7 @@ interface AppointmentRow {
   id: string
   type: string
   startTime: string
+  stopTime?: string | null  // ← add this
   chiefComplaint: string | null
   patient: { id: string; firstName: string; lastName: string }
 }

@@ -41,7 +41,7 @@ export default function TemplateFieldEditor({
   const showRange = field.type === 'numeric'
   const showOptions = field.type === 'select' || field.type === 'multiselect'
   const showFormula = field.type === 'calculated'
-  const showImage = field.type === 'image'
+  const showImage = (field.type as string) === 'image'
 
   // Local raw text for options (decoupled from field.options array)
   const [optionsText, setOptionsText] = useState('')
