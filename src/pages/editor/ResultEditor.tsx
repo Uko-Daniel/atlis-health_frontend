@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle } from 'lucide-react'
@@ -20,6 +20,7 @@ import type {
 } from '@/types/editor'
 import EditorHeader from '@/components/editor/EditorHeader'
 import EditorField  from '@/components/editor/EditorField'
+import { ImageUpload } from '@/components/ui/molecules/ImageUpload'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn }       from '@/lib/utils'
 
@@ -71,6 +72,13 @@ interface SimpleTemplateField {
   type?:  string
   unit?:  string
   range?: string
+}
+
+interface UploadedFile {
+  url: string
+  filename: string
+  mimetype: string
+  size: number
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -140,6 +148,7 @@ export default function ResultEditor() {
   const [isSubmitting,   setIsSubmitting]   = useState(false)
   const [submitError,    setSubmitError]    = useState<string | null>(null)
   const [missingFields,  setMissingFields]  = useState<string[]>([])
+  const [uploadedFiles,  setUploadedFiles]  = useState<UploadedFile[]>([])
 
   const autoSaveRef  = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
@@ -159,7 +168,11 @@ export default function ResultEditor() {
 
   // Normalize the raw dataSchema from the template
   const rawSchema = result?.template?.dataSchema as Record<string, unknown> | undefined
-  const schema = rawSchema ? normalizeSchema(rawSchema) : null
+  const schema = useMemo(
+    () => (rawSchema ? normalizeSchema(rawSchema) : null),
+    [rawSchema],
+  )
+  const isImaging = result?.template?.type === 'IMAGING'
 
   const patientName = result?.patient
     ? `${result.patient.firstName} ${result.patient.lastName}`
@@ -172,36 +185,39 @@ export default function ResultEditor() {
   useEffect(() => { schemaRef.current    = schema },      [schema])
 
   // ── Build DataSchema for flatToGroups conversion ──────────
-  const dataSchema: DataSchema | null = schema
-    ? {
-        version: 1,
-        layout: 'sections',
-        groups: schema.map((g) => ({
-          id: g.id,
-          label: g.label,
-          collapsible: g.collapsible,
-          fields: g.fields.map((f) => ({
-            id: f.id,
-            key: f.key,
-            label: f.label,
-            type: f.type,
-            unit: f.unit,
-            required: f.required,
-            referenceRange: f.referenceRange,
-            criticalRange: f.criticalRange,
-            precision: f.precision,
-            flagLogic: f.flagLogic,
-            options: f.options,
-            formula: f.formula,
-            formulaInputs: f.formulaInputs,
-            hint: f.hint,
-            placeholder: f.placeholder,
+  const dataSchema: DataSchema | null = useMemo(
+    () => schema
+      ? {
+          version: 1,
+          layout: 'sections',
+          groups: schema.map((g) => ({
+            id: g.id,
+            label: g.label,
+            collapsible: g.collapsible,
+            fields: g.fields.map((f) => ({
+              id: f.id,
+              key: f.key,
+              label: f.label,
+              type: f.type,
+              unit: f.unit,
+              required: f.required,
+              referenceRange: f.referenceRange,
+              criticalRange: f.criticalRange,
+              precision: f.precision,
+              flagLogic: f.flagLogic,
+              options: f.options,
+              formula: f.formula,
+              formulaInputs: f.formulaInputs,
+              hint: f.hint,
+              placeholder: f.placeholder,
+            })),
           })),
-        })),
-        interpretation: { enabled: true },
-        signature: { required: false, roles: [] },
-      }
-    : null
+          interpretation: { enabled: true },
+          signature: { required: false, roles: [] },
+        }
+      : null,
+    [schema],
+  )
 
   // ── Save function — converts flat draft to groups for backend ──
   const doSave = useCallback(async () => {
@@ -228,6 +244,7 @@ export default function ResultEditor() {
 
     resultIdRef.current = resultId
     let cancelled = false
+    const timers = flagTimers.current
 
     openSession(resultId)
       .then((session) => {
@@ -236,13 +253,15 @@ export default function ResultEditor() {
         sessionRef.current = true
 
         if (session.draftData && schema) {
-          // Backend returns groups format — convert to flat for UI
-          const draftData = session.draftData as { groups?: DraftGroup[]; interpretation?: string }
+          const draftData = session.draftData as { groups?: DraftGroup[]; interpretation?: string; images?: UploadedFile[] }
           if (draftData.groups) {
             const flat = groupsToFlat(draftData.groups, draftData.interpretation)
             setDraft(flat)
             draftRef.current = flat
             if (draftData.interpretation) setInterpretation(draftData.interpretation)
+          }
+          if (draftData.images) {
+            setUploadedFiles(draftData.images)
           }
         }
       })
@@ -255,7 +274,6 @@ export default function ResultEditor() {
       if (resultId) closeSession(resultId).catch(() => {})
       clearInterval(autoSaveRef.current)
       clearInterval(heartbeatRef.current)
-      const timers = flagTimers.current
       Object.values(timers).forEach(clearTimeout)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -305,7 +323,6 @@ export default function ResultEditor() {
         const pid = patientIdRef.current
         if (!rid || !pid) return
 
-        // Find the fieldId for this key
         const sch = schemaRef.current
         const field = sch?.flatMap((g) => g.fields).find((f) => f.key === key)
         if (!field) return
@@ -356,9 +373,15 @@ export default function ResultEditor() {
 
     try {
       const { groups } = flatToGroups(draftRef.current, dataSchema)
+      const draftPayload: DraftData = {
+        schemaVersion: 1,
+        groups,
+        interpretation,
+        images: uploadedFiles,
+      }
       const res = await submitResult(
         rid,
-        { schemaVersion: 1, groups, interpretation },
+        draftPayload,
         pid,
         interpretation || undefined,
       )
@@ -487,6 +510,23 @@ export default function ResultEditor() {
                 ))}
               </ul>
             )}
+          </div>
+        )}
+
+        {/* ── Image Upload (imaging templates only) ────────── */}
+        {isImaging && (
+          <div className="bg-white rounded-2xl shadow-sm p-5">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">
+              Scan Images
+            </h3>
+            <ImageUpload
+              onUpload={(file) => setUploadedFiles((prev) => [...prev, file])}
+              onRemove={(url) => setUploadedFiles((prev) => prev.filter((f) => f.url !== url))}
+              existingFiles={uploadedFiles}
+              accept="image/jpeg,image/png,image/webp,application/dicom"
+              label="Upload scan"
+              disabled={!sessionOpen}
+            />
           </div>
         )}
 

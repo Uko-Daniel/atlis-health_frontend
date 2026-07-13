@@ -3,6 +3,7 @@ import { LogOut, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore }  from '@/stores/authStore'
 import { useUIStore }    from '@/stores/uiStore'
+import { useTenantStore } from '@/hooks/useTenant'
 import { NAV_ITEMS }     from './navConfig'
 import { Avatar }        from '@/components/ui/atoms/Avatar'
 import {
@@ -19,6 +20,10 @@ export default function Sidebar() {
   const toggleCollapsed  = useUIStore((s) => s.toggleSidebarCollapsed)
   const navigate         = useNavigate()
 
+  const themeColor = useTenantStore((s) => s.themePrimaryColor) ?? '#5580F4'
+  const logoUrl = useTenantStore((s) => s.logoUrl)
+  const facilityName = useTenantStore((s) => s.facilityName) ?? 'Atlis Health'
+
   const handleLogout = () => { clearAuth(); navigate('/login', { replace: true }) }
 
   const visible = NAV_ITEMS.filter(
@@ -33,8 +38,6 @@ export default function Sidebar() {
 
   return (
     <TooltipProvider delayDuration={0}>
-
-      {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-20 bg-black/10 backdrop-blur-[2px] lg:hidden"
@@ -52,17 +55,15 @@ export default function Sidebar() {
         sidebarCollapsed ? 'lg:w-18' : 'lg:w-55',
         'w-55',
       )}>
-
         {/* ── Logo ── */}
         <div className={cn(
           'flex h-16 shrink-0 items-center border-b border-[#EEF1F8]',
           sidebarCollapsed ? 'justify-center' : 'px-5 gap-3',
         )}>
-          {/* Swap for <img src="/logo.svg" className="h-7 w-auto" /> */}
-          <img src="/atlis-icon.svg" className="h-7 w-auto" />
+          <img src={logoUrl ?? '/atlis-icon.svg'} className="h-7 w-auto" />
           {!sidebarCollapsed && (
-            <span className="text-sm font-bold text-inking-tight">
-              Atlis Health
+            <span className="text-sm font-bold text-ink truncate">
+              {facilityName}
             </span>
           )}
         </div>
@@ -82,14 +83,17 @@ export default function Sidebar() {
                       className={({ isActive }) => cn(
                         'flex items-center justify-center rounded-xl p-2.5 transition-all',
                         isActive
-                          ? 'bg-primary-50 text-[#5580F4]'
+                          ? 'text-white'
                           : 'text-subtle hover:bg-bg hover:text-[#64748B]',
                       )}
+                      style={({ isActive }) =>
+                        isActive ? { backgroundColor: themeColor } : {}
+                      }
                     >
                       {({ isActive }) => (
                         <Icon size={18} className={cn(
                           'shrink-0',
-                          isActive ? 'text-[#5580F4]' : 'text-subtle',
+                          isActive ? 'text-white' : 'text-subtle',
                         )} />
                       )}
                     </NavLink>
@@ -108,15 +112,18 @@ export default function Sidebar() {
                   'flex items-center gap-3 rounded-xl px-3 py-2.5',
                   'text-sm font-medium transition-all duration-150',
                   isActive
-                    ? 'bg-primary-50 text-[#5580F4]'
+                    ? 'text-white'
                     : 'text-[#64748B] hover:bg-bg hover:text-ink',
                 )}
+                style={({ isActive }) =>
+                  isActive ? { backgroundColor: themeColor } : {}
+                }
               >
                 {({ isActive }) => (
                   <>
                     <Icon size={17} className={cn(
                       'shrink-0',
-                      isActive ? 'text-[#5580F4]' : 'text-subtle',
+                      isActive ? 'text-white' : 'text-subtle',
                     )} />
                     {item.label}
                   </>
@@ -128,7 +135,6 @@ export default function Sidebar() {
 
         {/* ── Footer ── */}
         <div className="shrink-0 border-t border-[#EEF1F8] p-2.5 space-y-1">
-
           {!sidebarCollapsed && (
             <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl
                             hover:bg-bg transition-colors group">

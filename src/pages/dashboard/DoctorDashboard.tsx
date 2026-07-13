@@ -8,7 +8,7 @@ import { RESULT_BLIND_ROLES } from '@/types/auth'
 // Clinical roles — see full dashboard
 const CLINICAL = ['ADMIN', 'DOCTOR', 'NURSES']
 
-export default function Dashboard() {
+export default function DoctorDashboard() {
   const user          = useAuthStore((s) => s.user)
   const isClinical    = CLINICAL.includes(user?.role ?? '')
   const isResultBlind = user?.role ? RESULT_BLIND_ROLES.includes(user.role) : false

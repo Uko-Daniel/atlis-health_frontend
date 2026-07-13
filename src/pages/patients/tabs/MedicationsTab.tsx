@@ -11,7 +11,7 @@ export default function MedicationsTab() {
   const { id } = useParams<{ id: string }>()
   const { patient } = useOutletContext<PatientOutletContext>()
   const user         = useAuthStore((s) => s.user)
-  const canPrescribe = ['DOCTOR', 'ADMIN'].includes(user?.role ?? '')
+  const canPrescribe = ['DOCTOR', 'PHARMACIST'].includes(user?.role ?? '')
   const [modalOpen, setModalOpen] = useState(false)
 
   const allMeds  = patient?.records?.flatMap((r) => r.medications) ?? []

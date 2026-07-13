@@ -21,8 +21,8 @@ export default function EveeTab() {
   const { id } = useParams<{ id: string }>()
   const { patient } = useOutletContext<PatientOutletContext>()
   const user        = useAuthStore((s) => s.user)
-  const canRun       = ['DOCTOR', 'ADMIN'].includes(user?.role ?? '')
-  const canOverride  = ['DOCTOR', 'ADMIN'].includes(user?.role ?? '')
+  const canRun       = ['DOCTOR', 'PHARMACIST', 'NURSE'].includes(user?.role ?? '')
+  const canOverride  = ['DOCTOR'].includes(user?.role ?? '')
   const queryClient  = useQueryClient()
 
   const [overrideTarget, setOverrideTarget] = useState<EveeAlert | null>(null)

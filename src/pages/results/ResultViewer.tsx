@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   ArrowLeft, ShieldCheck, CheckCircle, Send,
-  AlertTriangle, Edit2, Printer, Zap,
+  AlertTriangle, Edit2, Printer, Zap, Image,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import {
@@ -18,6 +18,27 @@ import { Avatar }      from '@/components/ui/atoms/Avatar'
 import { Skeleton }    from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
+interface UploadedFile {
+  url: string
+  filename: string
+  mimetype: string
+  size: number
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isUploadedFile(value: unknown): value is UploadedFile {
+  return (
+    isRecord(value) &&
+    typeof value.url === 'string' &&
+    typeof value.filename === 'string' &&
+    typeof value.mimetype === 'string' &&
+    typeof value.size === 'number'
+  )
+}
+
 export default function ResultViewer() {
   const { id }       = useParams<{ id: string }>()
   const navigate     = useNavigate()
@@ -26,9 +47,9 @@ export default function ResultViewer() {
 
   const canVerify   = user?.canVerify || user?.role === 'ADMIN'
   const canFinalize = user?.canVerify || user?.isHOD || user?.role === 'ADMIN'
-  const canRelease  = ['DOCTOR', 'ADMIN', 'HIM_OFFICER'].includes(user?.role ?? '')
-  const canEdit     = ['LAB_TECH', 'RADIOLOGIST', 'ADMIN'].includes(user?.role ?? '')
-  const canRunEvee  = ['DOCTOR', 'ADMIN'].includes(user?.role ?? '')
+  const canRelease  = ['HIM_OFFICER'].includes(user?.role ?? '')
+  const canEdit     = ['LAB_SCIENTIST', 'IMAGING_TECH'].includes(user?.role ?? '')
+  const canRunEvee  = ['DOCTOR', 'LAB_SCIENTIST', 'IMAGING_TECH'].includes(user?.role ?? '')
 
   const { data: result, isLoading, isError } = useQuery({
     queryKey: ['results', id],
@@ -99,10 +120,14 @@ export default function ResultViewer() {
       })
     : '—'
 
+  // ── Extract images from result data ──────────────────────
+  const images = isRecord(result?.data) && Array.isArray(result.data.images)
+    ? result.data.images.filter(isUploadedFile)
+    : []
+
   // ── Structured data renderer ─────────────────────────────
 
   function renderData(data: Record<string, unknown>) {
-    // Structured format from Result Editor: { groups: [...], interpretation }
     if (data.groups && Array.isArray(data.groups)) {
       const groups = data.groups as Array<{
         groupId?: string
@@ -183,7 +208,6 @@ export default function ResultViewer() {
             </div>
           ))}
 
-          {/* Interpretation */}
           {data.interpretation != null && data.interpretation !== '' && (
             <div className="bg-[#F8FAFF] rounded-xl px-4 py-3 mt-4">
               <p className="text-xs font-bold text-[#64748B] mb-1">Interpretation</p>
@@ -196,8 +220,7 @@ export default function ResultViewer() {
       )
     }
 
-    // Fallback: flat key-value format (old results or simple templates)
-    const entries = Object.entries(data)
+    const entries = Object.entries(data).filter(([key]) => key !== 'images')
     if (entries.length === 0) {
       return <p className="text-sm text-[#94A3B8] italic">No result data recorded</p>
     }
@@ -255,7 +278,6 @@ export default function ResultViewer() {
 
       {result && (
         <>
-          {/* ── Header card ───────────────────────────────── */}
           <div className="bg-white rounded-2xl border border-[#EEF1F8]
                           shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6">
             <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -300,7 +322,6 @@ export default function ResultViewer() {
               )}
             </div>
 
-            {/* ── Actions ─────────────────────────────────── */}
             <div className="no-print flex items-center gap-2 mt-5 flex-wrap">
               {result.status === 'PENDING' && canEdit && (
                 <ButtonPill
@@ -375,6 +396,33 @@ export default function ResultViewer() {
             )}
           </div>
 
+          {/* ── Images (imaging results) ──────────────────── */}
+          {images.length > 0 && (
+            <div className="bg-white rounded-2xl border border-[#EEF1F8]
+                            shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6">
+              <h3 className="text-sm font-bold text-[#0F172A] mb-4 flex items-center gap-2">
+                <Image size={15} className="text-[#5580F4]" />
+                Scan Images
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {images.map((img, i) => (
+                  <a key={i} href={img.url} target="_blank" rel="noopener noreferrer"
+                     className="block rounded-xl border border-[#EEF1F8] overflow-hidden
+                                hover:shadow-md transition-shadow">
+                    <img
+                      src={img.url}
+                      alt={img.filename}
+                      className="w-full h-48 object-cover"
+                    />
+                    <p className="text-xs text-[#94A3B8] px-3 py-2 truncate">
+                      {img.filename}
+                    </p>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* ── Result Data ────────────────────────────────── */}
           <div className="bg-white rounded-2xl border border-[#EEF1F8]
                           shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6">
@@ -382,7 +430,6 @@ export default function ResultViewer() {
             {renderData(result.data as Record<string, unknown>)}
           </div>
 
-          {/* ── Audit Trail ────────────────────────────────── */}
           {(result.verifiedAt || result.releasedAt) && (
             <div className="bg-white rounded-2xl border border-[#EEF1F8]
                             shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6 no-print">
@@ -412,7 +459,6 @@ export default function ResultViewer() {
             </div>
           )}
 
-          {/* ── Print-only footer ──────────────────────────── */}
           <div className="hidden print:block text-center text-xs text-[#94A3B8] mt-8 pt-4 border-t border-[#EEF1F8]">
             <p className="font-bold text-[#0F172A] text-sm">Atlis Health</p>
             <p className="mt-1">Result ID: {result.id}</p>

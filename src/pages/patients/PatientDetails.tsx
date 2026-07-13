@@ -2,6 +2,7 @@ import { NavLink, Outlet, useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Phone, Mail, Calendar,
   UserPlus, ClipboardList, AlertTriangle,
+  FileText,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { usePatient, type PatientOutletContext } from '@/hooks/usePatient'
@@ -12,6 +13,9 @@ import { getPatientAge } from '@/types/patient'
 import { cn } from '@/lib/utils'
 import type { StaffRole } from '@/types/auth'
 import type { AllergySummary } from '@/types/patient'
+import { printRecord } from '@/utils/exportRecord'
+import { useTenantStore } from '@/hooks/useTenant'
+
 
 // ── Tab config ────────────────────────────────────────────────
 
@@ -23,35 +27,35 @@ const TABS = [
   {
     key:   'vitals',
     label: 'Vitals',
-    roles: ['ADMIN', 'DOCTOR', 'NURSES'] as StaffRole[],
+    roles: ['DOCTOR', 'NURSES'] as StaffRole[],
   },
   {
     key:   'diagnoses',
     label: 'Diagnoses',
-    roles: ['ADMIN', 'DOCTOR', 'NURSES'] as StaffRole[],
+    roles: ['DOCTOR', 'NURSES'] as StaffRole[],
   },
   {
     key:   'medications',
     label: 'Medications',
-    roles: ['ADMIN', 'DOCTOR', 'NURSES', 'PHARMACIST'] as StaffRole[],
+    roles: ['DOCTOR', 'NURSES', 'PHARMACIST'] as StaffRole[],
   },
   {
     key:   'orders',
     label: 'Orders',
     roles: [
-      'ADMIN', 'DOCTOR', 'NURSES', 'LAB_TECH',
-      'RADIOLOGIST', 'RECEPTIONIST', 'BILLING_OFFICER',
+      'ADMIN', 'DOCTOR', 'NURSES', 'LAB_SCIENTIST',
+      'IMAGING_TECH', 'RECEPTIONIST', 'BILLING_OFFICER',
     ] as StaffRole[],
   },
   {
     key:   'results',
     label: 'Results',
-    roles: ['ADMIN', 'DOCTOR', 'NURSES', 'LAB_TECH', 'RADIOLOGIST'] as StaffRole[],
+    roles: ['DOCTOR', 'NURSES', 'LAB_SCIENTIST', 'IMAGING_TECH'] as StaffRole[],
   },
   {
     key:   'evee',
     label: 'EVEE',
-    roles: ['ADMIN', 'DOCTOR'] as StaffRole[],
+    roles: ['DOCTOR', 'NURSES', 'PHARMACIST'] as StaffRole[],
   },
 ] as const
 
@@ -112,6 +116,7 @@ export default function PatientDetail() {
   const { id }   = useParams<{ id: string }>()
   const navigate = useNavigate()
   const user     = useAuthStore((s) => s.user)
+  const tenantName = useTenantStore((s) => s.facilityName) ?? 'Atlis Health'
 
   const { patient, isLoading, isError, invalidate } = usePatient(id!)
 
@@ -287,6 +292,14 @@ export default function PatientDetail() {
                     Order Tests
                   </ButtonPill>
                 )}
+                <ButtonPill
+                  variant="outline"
+                  size="sm"
+                  icon={FileText}
+                  onClick={() => printRecord(patient!, tenantName)}
+                >
+                  Export Record
+                </ButtonPill>
               </div>
             </div>
           )}

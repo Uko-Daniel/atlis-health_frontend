@@ -127,7 +127,7 @@ export default function PriorityQueue() {
   const navigate = useNavigate()
 
   const canSeeResults = user &&
-    ['DOCTOR', 'LAB_TECH', 'RADIOLOGIST', 'ADMIN'].includes(user.role)
+    ['DOCTOR', 'LAB_SCIENTIST', 'IMAGING_TECH', 'ADMIN'].includes(user.role)
 
   const { data, isLoading } = useQuery({
     queryKey: ['results', 'queue'],

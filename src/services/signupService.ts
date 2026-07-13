@@ -6,6 +6,7 @@ export interface SignupRequestInput {
   email:         string
   phone:         string
   profession:    string
+  role:          string
   department:    string
   facility?:     string
   licenseNumber?: string
@@ -19,6 +20,7 @@ export interface SignupRequestItem {
   email:         string
   phone:         string
   profession:    string
+  role:          string
   department:    string
   facility:      string | null
   licenseNumber: string | null
@@ -38,17 +40,11 @@ export interface SignupRequestListResponse {
   limit: number
 }
 
-/**
- * Submit a public sign-up request. No auth required.
- */
 export async function submitSignupRequest(data: SignupRequestInput) {
   const res = await api.post('/signup', data)
   return res.data as { message: string; id: string }
 }
 
-/**
- * List sign-up requests (admin only).
- */
 export async function getSignupRequests(params?: {
   status?: string
   page?:   number
@@ -58,9 +54,6 @@ export async function getSignupRequests(params?: {
   return res.data as SignupRequestListResponse
 }
 
-/**
- * Approve or reject a sign-up request (admin only).
- */
 export async function reviewSignupRequest(
   id:     string,
   action: 'APPROVE' | 'REJECT',

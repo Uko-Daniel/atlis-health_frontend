@@ -8,10 +8,11 @@ import { ButtonPill }   from '@/components/ui/atoms/ButtonPill'
 import { GraphRenderer } from '@/components/ui/molecules/GraphRenderer'
 import { TableCard, type TableColumn } from '@/components/ui/compounds/TableCard'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useAuthStore } from '@/stores/authStore'
 import RecordVitalsModal from '@/components/patients/RecordVitalsModal'
 import type { VitalSummary } from '@/types/patient'
 import { cn } from '@/lib/utils'
+import { usePermission } from '@/hooks/usePermission'
+
 
 type MetricKey = 'bp' | 'hr' | 'temp' | 'spo2' | 'weight'
 
@@ -67,9 +68,7 @@ function fullDateTime(d: string) {
 export default function VitalsTab() {
   const { id } = useParams<{ id: string }>()
   const { patient } = useOutletContext<PatientOutletContext>()
-  const user        = useAuthStore((s) => s.user)
-  const canRecord   = ['DOCTOR', 'NURSES', 'ADMIN'].includes(user?.role ?? '')
-
+  const canRecord = usePermission('allowRecordVitalsWithoutActiveEncounter')
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>('bp')
   const [modalOpen, setModalOpen] = useState(false)
 

@@ -31,7 +31,7 @@ export default function OrdersTab() {
   const { id }   = useParams<{ id: string }>()
   const navigate = useNavigate()
   const user     = useAuthStore((s) => s.user)
-  const canOrder = ['DOCTOR', 'ADMIN'].includes(user?.role ?? '')
+  const canOrder = ['DOCTOR'].includes(user?.role ?? '')
   const [modalOpen, setModalOpen] = useState(false)
 
   const { data: orders, isLoading, isError } = useQuery({

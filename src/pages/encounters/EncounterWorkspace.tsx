@@ -7,7 +7,6 @@ import {
   Activity, Stethoscope, Pill, ClipboardList,
   FileText, CheckCircle, Timer,
 } from 'lucide-react'
-import { useAuthStore } from '@/stores/authStore'
 import { useEncounter } from '@/hooks/useEncounter'
 import { usePatient } from '@/hooks/usePatient'
 import { closeEncounter, updateEncounter } from '@/services/encounterService'
@@ -27,6 +26,7 @@ import { cn } from '@/lib/utils'
 import { useDebounce } from '@/hooks/useDebounce'
 import { Zap } from 'lucide-react'
 import EveeInlinePanel from '@/components/patients/EveeInlinePanel'
+import { usePermission } from '@/hooks/usePermission'
 
 // ── Tool definitions ──────────────────────────────────────────
 
@@ -77,7 +77,6 @@ export default function EncounterWorkspace() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const user = useAuthStore((s) => s.user)
 
   const { encounter, isLoading: encLoading, isError } = useEncounter(id!)
   const { patient, isLoading: ptLoading } = usePatient(encounter?.patientId ?? '')
@@ -110,16 +109,16 @@ export default function EncounterWorkspace() {
   }, [encounter])
 
   // Auto-save notes
-  const saveNotes = useMutation({
+  const { mutate: saveNotes, isPending: isSavingNotes } = useMutation({
     mutationFn: (content: string) =>
       updateEncounter(id!, { notes: content }),
   })
 
   useEffect(() => {
     if (notesInitialised.current && debouncedNotes !== (encounter?.notes ?? '')) {
-      saveNotes.mutate(debouncedNotes)
+      saveNotes(debouncedNotes)
     }
-  }, [debouncedNotes])
+  }, [debouncedNotes, encounter?.notes, saveNotes])
 
   // Close encounter
   const closeMut = useMutation({
@@ -148,7 +147,7 @@ export default function EncounterWorkspace() {
   const shortId = encounter?.id.slice(-8).toUpperCase() ?? ''
   const recordId = patient?.records?.[0]?.id
 
-  const canWork = ['DOCTOR', 'NURSES', 'ADMIN'].includes(user?.role ?? '') && !isClosed
+  const canRecordVitals = usePermission('allowRecordVitalsWithoutActiveEncounter')
 
   // ── Error ──────────────────────────────────────────────────
   if (isError) {
@@ -222,7 +221,7 @@ export default function EncounterWorkspace() {
                   <Timer size={13} />
                   {isClosed ? 'Completed' : elapsed}
                 </div>
-                {canWork && (
+                {canRecordVitals && (
                   <ButtonPill
                     variant="success"
                     icon={CheckCircle}
@@ -241,7 +240,7 @@ export default function EncounterWorkspace() {
       <div className="px-6 py-6 space-y-6">
 
         {/* Toolbar */}
-        {canWork && (
+        {canRecordVitals && (
           <div className="flex gap-2 flex-wrap">
             {TOOLS.map((tool) => (
               <button
@@ -282,7 +281,7 @@ export default function EncounterWorkspace() {
               <FileText size={15} className="text-[#94A3B8]" />
               Clinical Notes
             </h3>
-            {saveNotes.isPending && (
+            {isSavingNotes && (
               <span className="text-xs text-[#94A3B8]">Saving…</span>
             )}
           </div>

@@ -13,8 +13,8 @@ import { Avatar }      from '@/components/ui/atoms/Avatar'
 
 // Map staff role → the department label their services should match
 const ROLE_DEPT_HINT: Record<string, string[]> = {
-  LAB_TECH:    ['hematology', 'parasitology', 'chemistry', 'microbiology', 'serology', 'pathology'],
-  RADIOLOGIST: ['imaging'],
+  LAB_SCIENTIST:    ['hematology', 'parasitology', 'chemistry', 'microbiology', 'serology', 'pathology'],
+  IMAGING_TECH: ['imaging'],
 }
 
 function fmtDate(d: string) {

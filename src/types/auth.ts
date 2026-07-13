@@ -1,9 +1,10 @@
 export type StaffRole =
+  | 'SUPER_ADMIN'
   | 'ADMIN'
   | 'DOCTOR'
   | 'NURSES'
-  | 'LAB_TECH'
-  | 'RADIOLOGIST'
+  | 'LAB_SCIENTIST'
+  | 'IMAGING_TECH'
   | 'PHARMACIST'
   | 'RECEPTIONIST'
   | 'BILLING_OFFICER'
@@ -29,6 +30,7 @@ export interface AuthUser {
   isHOD:      boolean
   canVerify:  boolean
   email:      string
+  tenantId:   string
 }
 
 export interface AuthState {

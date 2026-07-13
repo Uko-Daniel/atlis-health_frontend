@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 
 import { login } from '@/services/authService'
 import { useAuthStore } from '@/stores/authStore'
+import { useTenantStore } from '@/hooks/useTenant'
 
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email address'),
@@ -27,6 +28,10 @@ export default function Login() {
   const setAuth = useAuthStore((s) => s.setAuth)
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
+
+  const themeColor = useTenantStore((s) => s.themePrimaryColor) ?? '#5580F4'
+  const logoUrl = useTenantStore((s) => s.logoUrl)
+  const facilityName = useTenantStore((s) => s.facilityName) ?? 'Atlis Health'
 
   const {
     register,
@@ -51,39 +56,27 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
-
-      {/* ── Outer content column ── */}
       <div className={cn('flex flex-col gap-6 w-full max-w-sm flex-1 justify-center')}>
-
-        {/* ── Logo + heading block ── */}
+        {/* Logo + heading */}
         <div className="flex flex-col items-center gap-2 text-center">
-
-          {/* Logo */}
-          <a href="#" className="flex flex-col items-center gap-2 font-medium">
-            <img src="/atlis-logo.svg" alt="Atlis Health" className="h-12 w-auto" />
-          </a>
-
+          <img
+            src={logoUrl ?? '/atlis-logo.svg'}
+            alt={facilityName}
+            className="h-12 w-auto"
+          />
           <h1 className="text-xl font-bold text-slate-900">
-            Welcome to Atlis Health
+            Welcome to {facilityName}
           </h1>
           <p className="text-sm text-slate-500 balance">
             Sign in with your facility credentials to continue
           </p>
         </div>
 
-        {/* ── Form group ── */}
+        {/* Form */}
         <div className="flex flex-col gap-4">
-
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-4"
-          >
-            {/* Email */}
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label
-                htmlFor="email"
-                className="text-sm font-medium text-slate-700"
-              >
+              <Label htmlFor="email" className="text-sm font-medium text-slate-700">
                 Email
               </Label>
               <Input
@@ -99,12 +92,8 @@ export default function Login() {
               )}
             </div>
 
-            {/* Password */}
             <div className="flex flex-col gap-2">
-              <Label
-                htmlFor="password"
-                className="text-sm font-medium text-slate-700"
-              >
+              <Label htmlFor="password" className="text-sm font-medium text-slate-700">
                 Password
               </Label>
               <div className="relative">
@@ -131,35 +120,36 @@ export default function Login() {
               )}
             </div>
 
-            {/* Server error */}
             {serverError && (
               <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                 {serverError}
               </div>
             )}
 
-            {/* Submit */}
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-slate-900 hover:bg-slate-700 text-white transition-colors"
+              className="w-full text-white transition-colors"
+              style={{ backgroundColor: themeColor }}
+              onMouseEnter={(e) => {
+                // Darken by 8% on hover
+                (e.currentTarget as HTMLButtonElement).style.filter = 'brightness(0.92)'
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.filter = ''
+              }}
             >
               {isSubmitting ? 'Signing in…' : 'Sign in'}
             </Button>
-
           </form>
-
         </div>
-
       </div>
 
-      {/* ── Copyright footer ── */}
       <footer className="py-6 text-center">
         <p className="text-xs text-slate-400">
-          Copyright &copy; {CURRENT_YEAR} Atlis Health. All rights reserved.
+          Copyright &copy; {CURRENT_YEAR} {facilityName}. All rights reserved.
         </p>
       </footer>
-
     </div>
   )
 }

@@ -22,7 +22,7 @@ export default function DiagnosesTab() {
   const { id } = useParams<{ id: string }>()
   const { patient } = useOutletContext<PatientOutletContext>()
   const user      = useAuthStore((s) => s.user)
-  const canRecord = ['DOCTOR', 'ADMIN'].includes(user?.role ?? '')
+  const canRecord = ['DOCTOR'].includes(user?.role ?? '')
   const [modalOpen, setModalOpen] = useState(false)
 
   const activeEncounter = patient?.encounters?.find((e) => !e.stopTime)

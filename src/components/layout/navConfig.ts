@@ -7,6 +7,8 @@ import {
   UserCog,
   Settings,
   ListChecks,
+  ClipboardList,
+  FlaskConical
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { StaffRole } from '@/types/auth'
@@ -19,11 +21,12 @@ export interface NavItem {
 }
 
 const ALL_ROLES: StaffRole[] = [
+  'SUPER_ADMIN',
   'ADMIN',
   'DOCTOR',
   'NURSES',
-  'LAB_TECH',
-  'RADIOLOGIST',
+  'LAB_SCIENTIST',
+  'IMAGING_TECH',
   'PHARMACIST',
   'RECEPTIONIST',
   'BILLING_OFFICER',
@@ -44,43 +47,54 @@ export const NAV_ITEMS: NavItem[] = [
     path: '/patients',
     icon: Users,
     // BILLING_OFFICER and result-blind roles excluded from patient records
-    allowedRoles: ['ADMIN', 'DOCTOR', 'NURSES', 'PHARMACIST', 'RECEPTIONIST', 'HIM_OFFICER'],
+    allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'NURSES', 'PHARMACIST', 'RECEPTIONIST', 'HIM_OFFICER'],
   },
   {
     label: 'Appointments',
     path:  '/appointments',
     icon:  CalendarClock,
-    allowedRoles: [
-      'ADMIN', 'DOCTOR', 'NURSES',
-      'RECEPTIONIST', 'RADIOLOGIST',
+    allowedRoles: [ 'DOCTOR', 'IT_SUPPORT',
+      'RECEPTIONIST',
     ],
+  },
+  {
+    label: 'Orders',
+    path: '/orders',
+    icon: ClipboardList,
+    allowedRoles: ['IT_SUPPORT', 'ADMIN', 'MANAGER', 'BILLING_OFFICER', 'HIM_OFFICER'],
+  },
+  {
+    label: 'Services',
+    path: '/services',
+    icon: FlaskConical,
+    allowedRoles: ['IT_SUPPORT', 'ADMIN', 'MANAGER', 'BILLING_OFFICER'],
   },
   {
     label: 'Worklist',
     path:  '/worklist',
     icon:  ListChecks,
-    allowedRoles: ['LAB_TECH', 'RADIOLOGIST', 'ADMIN'],
+    allowedRoles: ['LAB_SCIENTIST', 'IMAGING_TECH', 'ADMIN', 'IT_SUPPORT'],
   },
   {
     label: 'Results',
     path:  '/results',
     icon:  FileText,
     allowedRoles: [
-      'ADMIN', 'DOCTOR', 'LAB_TECH',
-      'RADIOLOGIST', 'HIM_OFFICER',
+      'ADMIN', 'DOCTOR', 'LAB_SCIENTIST',
+      'IMAGING_TECH', 'HIM_OFFICER',
     ],
   },
   {
     label: 'Templates',
     path: '/templates',
     icon: LayoutTemplate,
-    allowedRoles: ['ADMIN', 'LAB_TECH', 'RADIOLOGIST'],
+    allowedRoles: ['ADMIN', 'LAB_SCIENTIST', 'IMAGING_TECH', 'IT_SUPPORT'],
   },
   {
     label: 'Staff',
     path: '/staff',
     icon: UserCog,
-    allowedRoles: ['ADMIN'],
+    allowedRoles: ['ADMIN', 'MANAGER'],
   },
   {
     label: 'Settings',

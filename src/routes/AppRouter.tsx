@@ -3,7 +3,8 @@ import ProtectedRoute  from './ProtectedRoute'
 import AppLayout       from '@/components/layout/AppLayout'
 
 import Login           from '@/pages/auth/Login'
-import Dashboard       from '@/pages/dashboard/Dashboard'
+import DashboardIndex from '@/pages/dashboard/DashboardIndex'
+import ServicesPage from '@/pages/services/ServicesPage'
 
 import PatientList     from '@/pages/patients/PatientList'
 import PatientNew      from '@/pages/patients/PatientNew'
@@ -27,6 +28,23 @@ import SignUpRequests from '@/pages/admin/SignUpRequests'
 import Signup from '@/pages/auth/SignUp'
 import EncounterWorkspace from '@/pages/encounters/EncounterWorkspace'
 
+import SettingsIndex from '@/pages/settings/SettingsIndex'
+import PermissionsPage from '@/pages/settings/PermissionsPage'
+import BillingPage from '@/pages/settings/BillingPage'
+import GoogleSettingsPage from '@/pages/settings/GoogleSettingsPage'
+
+import OrdersPage from '@/pages/orders/OrdersPage'
+import OrderDetails from '@/pages/orders/OrderDetails'
+import StaffManagement from '@/pages/staff/StaffManagement'
+import StaffDetail from '@/pages/staff/StaffDetail'
+
+import TemplatesPage from '@/pages/template/TemplatesPage'
+import TemplateDetail from '@/pages/template/TemplatesDetail'
+import TemplateEditor from '@/pages/template/TemplateEditor'
+
+
+
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -42,7 +60,14 @@ export default function AppRouter() {
 
             <Route path="/admin/signup-requests" element={<SignUpRequests />} />
             {/* Dashboard */}
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<DashboardIndex />} />
+            <Route path="/services" element={<ServicesPage />} />
+
+            {/* Settings */}
+            <Route path="/settings/permissions" element={<PermissionsPage />} />
+            <Route path="/settings" element={<SettingsIndex />} />
+            <Route path="/settings/billing" element={<BillingPage />} />
+            <Route path="/settings/google" element={<GoogleSettingsPage />} />
 
             {/* Patients */}
             <Route path="/patients"     element={<PatientList />} />
@@ -62,10 +87,19 @@ export default function AppRouter() {
 
             {/* Appointments */}
             <Route path="/appointments" element={<Appointments />} />
+            
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/orders/:id" element={<OrderDetails />} />
 
             {/* Results */}
             <Route path="/results"     element={<Results />} />
             <Route path="/results/:id" element={<ResultViewer />} />
+
+            <Route path="/templates" element={<TemplatesPage />} />
+            <Route path="/templates/:id" element={<TemplateDetail />} />
+            <Route path="/templates/new" element={<TemplateEditor />} />
+            <Route path="/templates/:id/edit" element={<TemplateEditor />} />
+
 
             {/* Worklist */}
             <Route path="/worklist" element={<DepartmentWorklist />} />
@@ -76,6 +110,10 @@ export default function AppRouter() {
             {/* Result editor */}
             <Route path="/editor/:resultId" element={<ResultEditor />} />
             <Route path="/appointments/:id" element={<AppointmentDetail />} />
+
+            <Route path="/orders/:id" element={<OrderDetails />} />
+            <Route path="/staff" element={<StaffManagement />} />
+            <Route path="/staff/:id" element={<StaffDetail />} />
 
           </Route>
         </Route>
