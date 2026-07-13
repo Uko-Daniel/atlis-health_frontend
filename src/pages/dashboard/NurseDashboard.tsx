@@ -12,8 +12,13 @@ interface ActiveEncounter {
   id: string
   type: string
   startTime: string
+  stopTime?: string | null
   chiefComplaint: string | null
   patient: { id: string; firstName: string; lastName: string; dob: string }
+}
+
+interface ActiveMedication {
+  id: string
 }
 
 function fmtTime(d: string) {
@@ -38,7 +43,7 @@ export default function NurseDashboard() {
     queryKey: ['medications', 'active-count'],
     queryFn: async () => {
       const res = await api.get('/medications/active')
-      return res.data as any[]
+      return res.data as ActiveMedication[]
     },
   })
 

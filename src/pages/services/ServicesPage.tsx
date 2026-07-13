@@ -41,6 +41,11 @@ interface ServicePayload {
   templateId: string | null
 }
 
+interface TemplateOption {
+  id: string
+  name: string
+}
+
 interface ApiErrorResponse {
   error?: string
 }
@@ -107,7 +112,10 @@ export default function ServicesPage() {
       const res = await api.get('/templates', { params: { activeOnly: true, limit: 50 } })
       const payload = res.data
       const list = Array.isArray(payload) ? payload : (payload?.data ?? [])
-      return (list as any[]).map((t: any) => ({ id: String(t.id), name: String(t.name ?? 'Unnamed') }))
+      return (list as Array<Partial<TemplateOption>>).map((t) => ({
+        id: String(t.id),
+        name: String(t.name ?? 'Unnamed'),
+      }))
     },
     enabled: showCreate || !!editingService,
   })

@@ -50,6 +50,7 @@ export default function TemplateFieldEditor({
   // Initialize local options text from field options
   useEffect(() => {
     if (!optionsSynced.current && field.options && field.options.length > 0) {
+       
       setOptionsText(field.options.join(', '))
       optionsSynced.current = true
     }
@@ -58,6 +59,7 @@ export default function TemplateFieldEditor({
   // When type changes away from select/multiselect, clear options
   useEffect(() => {
     if (!showOptions) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOptionsText('')
       optionsSynced.current = false
     }
@@ -88,7 +90,7 @@ export default function TemplateFieldEditor({
             <Select
               value={field.type}
               onValueChange={(v) => {
-                const updates: Partial<TemplateField> = { type: v as any }
+                const updates: Partial<TemplateField> = { type: v as TemplateField['type'] }
                 if (v === 'calculated') {
                   updates.unit = ''
                   updates.referenceRange = undefined

@@ -37,6 +37,7 @@ export default function FormulaBuilder({ fields, value, onChange, onCommit }: Pr
 
   // Sync external value changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDisplay(value || '')
   }, [value])
 

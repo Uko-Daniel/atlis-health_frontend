@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { isAxiosError } from 'axios'
 import { Upload, X, FileText, Loader2 } from 'lucide-react'
 import api from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -9,6 +10,10 @@ export interface UploadedFile {
   filename: string
   mimetype: string
   size: number
+}
+
+interface ApiErrorResponse {
+  error?: string
 }
 
 interface Props {
@@ -66,8 +71,11 @@ export function ImageUpload({
       }
       if (inputRef.current) inputRef.current.value = ''
     },
-    onError: (err: any) => {
-      setError(err?.response?.data?.error ?? 'Upload failed')
+    onError: (err: unknown) => {
+      const message = isAxiosError<ApiErrorResponse>(err)
+        ? err.response?.data?.error
+        : undefined
+      setError(message ?? 'Upload failed')
     },
   })
 

@@ -50,6 +50,24 @@ interface PurchaseOrder {
   createdAt: string
 }
 
+interface CreateInventoryItemPayload {
+  name: string
+  category: string
+  unit: string
+  quantity: number
+  flagLevel: number
+  unitPrice?: number
+  supplierId?: string
+  expiryDate?: string
+}
+
+interface CreateSupplierPayload {
+  name: string
+  contactPerson?: string
+  phone?: string
+  email?: string
+}
+
 function naira(n: number) {
   return `₦${n.toLocaleString('en-NG')}`
 }
@@ -110,7 +128,7 @@ export default function ProcurementDashboard() {
   })
 
   const addItemMut = useMutation({
-    mutationFn: (data: any) => api.post('/inventory', data),
+    mutationFn: (data: CreateInventoryItemPayload) => api.post('/inventory', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] })
       toast.success('Item added')
@@ -121,7 +139,7 @@ export default function ProcurementDashboard() {
   })
 
   const addSupplierMut = useMutation({
-    mutationFn: (data: any) => api.post('/suppliers', data),
+    mutationFn: (data: CreateSupplierPayload) => api.post('/suppliers', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] })
       toast.success('Supplier added')

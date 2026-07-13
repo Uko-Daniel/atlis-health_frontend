@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
@@ -43,9 +43,9 @@ export default function NewAppointmentModal({ open, onClose }: Props) {
   const [showDropdown, setShowDropdown]     = useState(false)
   const debouncedSearch = useDebounce(patientSearch, 300)
 
-  const { register, handleSubmit, setValue, reset, watch, formState: { errors } } =
+  const { register, handleSubmit, setValue, reset, control, formState: { errors } } =
     useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { type: 'OUTPATIENT' } })
-  const appointmentType = watch('type')
+  const appointmentType = useWatch({ control, name: 'type' })
 
   const { data: searchData } = useQuery({
     queryKey: ['patients', 'search', debouncedSearch],

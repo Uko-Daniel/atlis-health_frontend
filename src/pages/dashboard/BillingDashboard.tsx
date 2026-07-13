@@ -28,6 +28,21 @@ interface MonthlyStats {
   orderCount: number
 }
 
+interface CompletedOrder {
+  services?: Array<{ service?: { price?: number | string | null } | null }>
+}
+
+interface ExpenseItem {
+  amount?: number | string | null
+}
+
+interface BillingRequest {
+  id: string
+  title: string
+  type?: string | null
+  amount?: number | null
+}
+
 function naira(n: number) {
   return `₦${n.toLocaleString('en-NG')}`
 }
@@ -54,13 +69,14 @@ export default function BillingDashboard() {
         api.get('/claims', { params: { status: 'PENDING' } }),
       ])
 
-      const orders = ordersRes.data?.data ?? []
-      const expenses = expensesRes.data?.data ?? []
-      const claims = claimsRes.data?.data ?? []
+      const orders = (ordersRes.data?.data ?? []) as CompletedOrder[]
+      const expenses = (expensesRes.data?.data ?? []) as ExpenseItem[]
+      const claims = (claimsRes.data?.data ?? []) as unknown[]
 
-      const revenue = orders.reduce((sum: number, o: any) =>
-        sum + (o.services ?? []).reduce((s: number, os: any) => s + (os.service?.price ?? 0), 0), 0)
-      const totalExpenses = expenses.reduce((sum: number, e: any) => sum + Number(e.amount ?? 0), 0)
+      const revenue = orders.reduce((sum, order) =>
+        sum + (order.services ?? []).reduce((serviceSum, orderService) =>
+          serviceSum + Number(orderService.service?.price ?? 0), 0), 0)
+      const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.amount ?? 0), 0)
 
       return {
         revenue,
@@ -75,7 +91,7 @@ export default function BillingDashboard() {
     queryKey: ['requests', 'pending'],
     queryFn: async () => {
       const res = await api.get('/requests', { params: { status: 'PENDING', limit: 5 } })
-      return res.data?.data ?? []
+      return (res.data?.data ?? []) as BillingRequest[]
     },
   })
 
@@ -186,7 +202,7 @@ export default function BillingDashboard() {
             </button>
           </div>
           <div className="divide-y divide-[#F8FAFF]">
-            {(recentRequests as any[]).slice(0, 5).map((req: any) => (
+            {recentRequests.slice(0, 5).map((req) => (
               <div key={req.id} className="flex items-center justify-between px-5 py-3">
                 <div>
                   <p className="text-sm font-medium text-[#0F172A]">{req.title}</p>

@@ -264,7 +264,7 @@ export default function ResultEditor() {
       clearInterval(heartbeatRef.current)
       Object.values(timers).forEach(clearTimeout)
     }
-  }, [resultId, result?.id, !!schema])
+  }, [resultId, result, schema])
 
   useEffect(() => {
     if (!sessionOpen || !resultId) return
@@ -312,7 +312,9 @@ export default function ResultEditor() {
         try {
           const res = await flagField(rid, field.id, value, pid)
           setFlags((prev) => ({ ...prev, [key]: res.flag }))
-        } catch {}
+        } catch {
+          setFlags((prev) => ({ ...prev, [key]: null }))
+        }
       }, FLAG_DEBOUNCE)
     }
 

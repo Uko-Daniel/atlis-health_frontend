@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { isAxiosError } from 'axios'
 import { toast } from 'sonner'
 import {
   ArrowLeft, Save, Plus, Trash2, GripVertical,
@@ -23,6 +24,38 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 
 const DEPARTMENTS = ['LABORATORY', 'RADIOLOGY', 'CARDIOLOGY', 'PHARMACY']
+
+interface TemplateEditorDraft {
+  name?: string
+  description?: string
+  department?: string
+  groups?: TemplateGroup[]
+  rangeInputs?: Record<string, string>
+}
+
+interface TemplateSavePayload {
+  name: string
+  description?: string
+  department: string
+  dataSchema: {
+    version: number
+    layout: 'sections'
+    groups: TemplateGroup[]
+    interpretation: { enabled: boolean }
+    signature: { required: boolean; roles: string[] }
+  }
+}
+
+interface ApiErrorResponse {
+  error?: string
+}
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (isAxiosError<ApiErrorResponse>(error)) {
+    return error.response?.data?.error ?? fallback
+  }
+  return fallback
+}
 
 function emptyField(): TemplateField {
   return {
@@ -68,8 +101,9 @@ export default function TemplateEditor() {
   })
 
   // Populate from existing template
-  useState(() => {
+  useEffect(() => {
     if (existingTemplate) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       setName(existingTemplate.name)
       setDescription(existingTemplate.description ?? '')
       setDepartment(existingTemplate.department)
@@ -84,8 +118,9 @@ export default function TemplateEditor() {
         })
       })
       setRangeInputs(ranges)
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
-  })
+  }, [existingTemplate])
 
   // Load draft from localStorage on mount (new templates only)
   useEffect(() => {
@@ -93,16 +128,18 @@ export default function TemplateEditor() {
     const saved = localStorage.getItem('template-editor-draft')
     if (!saved) return
     try {
-      const draft = JSON.parse(saved)
+      const draft = JSON.parse(saved) as TemplateEditorDraft
+      /* eslint-disable react-hooks/set-state-in-effect */
       if (draft.name) setName(draft.name)
       if (draft.description) setDescription(draft.description)
       if (draft.department) setDepartment(draft.department)
       if (draft.groups && Array.isArray(draft.groups)) setGroups(draft.groups)
       if (draft.rangeInputs) setRangeInputs(draft.rangeInputs)
       setIsDirty(true)
+      /* eslint-enable react-hooks/set-state-in-effect */
       toast.info('Draft restored')
     } catch { /* ignore corrupt draft */ }
-  }, [])
+  }, [isEdit])
 
   // Auto-save draft every 10s
   useEffect(() => {
@@ -119,7 +156,7 @@ export default function TemplateEditor() {
   const markDirty = () => { if (!isDirty) setIsDirty(true) }
 
   const saveMut = useMutation({
-    mutationFn: (data: any) => isEdit ? updateTemplate(id!, data) : createTemplate(data),
+    mutationFn: (data: TemplateSavePayload) => isEdit ? updateTemplate(id!, data) : createTemplate(data),
     onSuccess: () => {
       localStorage.removeItem('template-editor-draft')
       setIsDirty(false)
@@ -127,7 +164,7 @@ export default function TemplateEditor() {
       toast.success(isEdit ? 'Template updated' : 'Template created')
       navigate('/templates')
     },
-    onError: (err: any) => toast.error(err?.response?.data?.error ?? 'Failed to save'),
+    onError: (err: unknown) => toast.error(getApiErrorMessage(err, 'Failed to save')),
   })
 
   const handleSave = () => {

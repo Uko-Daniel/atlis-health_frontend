@@ -4,7 +4,7 @@ export interface TemplateField {
   id: string
   key: string
   label: string
-  type: 'numeric' | 'text' | 'select' | 'multiselect' | 'richtext' | 'calculated' | 'boolean'
+  type: 'numeric' | 'text' | 'select' | 'multiselect' | 'richtext' | 'calculated' | 'boolean' | 'image'
   unit?: string
   required: boolean
   referenceRange?: {

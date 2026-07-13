@@ -8,6 +8,10 @@ import api from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { cn } from '@/lib/utils'
 
+interface EncounterSummary {
+  startTime: string
+}
+
 function naira(n: number | undefined | null) {
   if (n == null) return '₦0'
   return `₦${n.toLocaleString('en-NG')}`
@@ -37,7 +41,8 @@ export default function ManagerDashboard() {
     queryKey: ['encounters', 'count-today'],
     queryFn: async () => {
       const res = await api.get('/encounters', { params: { limit: 100 } })
-      const today = (res.data?.data ?? []).filter((e: any) => {
+      const encounters = (res.data?.data ?? []) as EncounterSummary[]
+      const today = encounters.filter((e) => {
         const d = new Date(e.startTime)
         const now = new Date()
         return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()

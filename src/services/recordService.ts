@@ -12,10 +12,10 @@ export interface RecordSummary {
 export interface PatientRecord {
   id: string
   patientId: string
-  medications: any[]
-  encounters: any[]
-  results: any[]
-  report: any[]
+  medications: unknown[]
+  encounters: unknown[]
+  results: unknown[]
+  report: unknown[]
   createdAt: string
 }
 

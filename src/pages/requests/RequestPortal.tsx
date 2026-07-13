@@ -35,6 +35,13 @@ interface RequestItem {
   createdAt: string
 }
 
+interface CreateRequestPayload {
+  type: string
+  title: string
+  description?: string
+  amount?: number
+}
+
 const REQUEST_TYPES = [
   { value: 'ITEM_REQUEST', label: 'Item Request', icon: Package, color: 'text-[#5580F4]', bg: 'bg-[#F0F4FF]' },
   { value: 'FUND_DISBURSEMENT', label: 'Fund Disbursement', icon: Package, color: 'text-[#10B981]', bg: 'bg-[#ECFDF5]' },
@@ -84,7 +91,7 @@ export default function RequestPortal() {
   })
 
   const createMut = useMutation({
-    mutationFn: (data: any) => api.post('/requests', data),
+    mutationFn: (data: CreateRequestPayload) => api.post('/requests', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requests'] })
       toast.success('Request submitted')

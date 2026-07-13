@@ -41,6 +41,13 @@ interface StaffActivity {
   createdAt: string
 }
 
+type StaffProfileUpdate = Partial<Pick<
+  StaffDetail,
+  'firstName' | 'lastName' | 'phoneNumber' | 'department'
+>>
+
+type StaffPermissionUpdate = Partial<Pick<StaffDetail, 'role' | 'isHOD' | 'canVerify'>>
+
 const ALL_ROLES = [
   'DOCTOR', 'NURSES', 'LAB_SCIENTIST', 'IMAGING_TECH', 'PHARMACIST',
   'PROCUREMENT_OFFICER', 'RECEPTIONIST', 'BILLING_OFFICER', 'HIM_OFFICER',
@@ -92,7 +99,7 @@ export default function StaffDetail() {
   })
 
   const updateMut = useMutation({
-    mutationFn: (data: any) => api.put(`/staff/${id}`, data),
+    mutationFn: (data: StaffProfileUpdate) => api.put(`/staff/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', id] })
       queryClient.invalidateQueries({ queryKey: ['staff'] })
@@ -102,7 +109,7 @@ export default function StaffDetail() {
   })
 
   const permissionsMut = useMutation({
-    mutationFn: (data: any) => api.patch(`/staff/${id}`, data),
+    mutationFn: (data: StaffPermissionUpdate) => api.patch(`/staff/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', id] })
       toast.success('Permissions updated')
@@ -134,7 +141,7 @@ export default function StaffDetail() {
   const fullName = `${staff.firstName} ${staff.lastName}`
 
   const handleSaveEdit = async () => {
-    const profileData: any = {}
+    const profileData: StaffProfileUpdate = {}
     if (editData.firstName !== undefined && editData.firstName !== staff.firstName) profileData.firstName = editData.firstName
     if (editData.lastName !== undefined && editData.lastName !== staff.lastName) profileData.lastName = editData.lastName
     if (editData.phoneNumber !== undefined) profileData.phoneNumber = editData.phoneNumber || null

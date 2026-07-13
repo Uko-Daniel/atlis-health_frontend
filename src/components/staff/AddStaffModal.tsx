@@ -34,6 +34,18 @@ interface ApiErrorResponse {
   error?: string
 }
 
+interface CreateStaffPayload {
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber?: string
+  role: string
+  department?: string
+  password: string
+  canVerify: boolean
+  isHOD: boolean
+}
+
 function getApiErrorMessage(error: unknown, fallback: string) {
   if (isAxiosError<ApiErrorResponse>(error)) {
     return error.response?.data?.error ?? fallback
@@ -60,7 +72,7 @@ export default function AddStaffModal({ open, onClose }: Props) {
   const [isHOD, setIsHOD] = useState(false)
 
   const createMut = useMutation({
-    mutationFn: (data: any) => api.post('/staff', data),
+    mutationFn: (data: CreateStaffPayload) => api.post('/staff', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff'] })
       toast.success('Staff account created')
