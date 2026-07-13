@@ -15,6 +15,7 @@ import type { StaffRole } from '@/types/auth'
 import type { AllergySummary } from '@/types/patient'
 import { printRecord } from '@/utils/exportRecord'
 import { useTenantStore } from '@/hooks/useTenant'
+import { usePermission } from '@/hooks/usePermission'
 
 
 // ── Tab config ────────────────────────────────────────────────
@@ -117,6 +118,7 @@ export default function PatientDetail() {
   const navigate = useNavigate()
   const user     = useAuthStore((s) => s.user)
   const tenantName = useTenantStore((s) => s.facilityName) ?? 'Atlis Health'
+  const canExport = usePermission('allowExportRecords')
 
   const { patient, isLoading, isError, invalidate } = usePatient(id!)
 
@@ -292,14 +294,16 @@ export default function PatientDetail() {
                     Order Tests
                   </ButtonPill>
                 )}
-                <ButtonPill
-                  variant="outline"
-                  size="sm"
-                  icon={FileText}
-                  onClick={() => printRecord(patient!, tenantName)}
-                >
-                  Export Record
-                </ButtonPill>
+                {canExport && (
+                  <ButtonPill
+                    variant="outline"
+                    size="sm"
+                    icon={FileText}
+                    onClick={() => printRecord(patient!, tenantName)}
+                  >
+                    Export Record
+                  </ButtonPill>
+                )}
               </div>
             </div>
           )}

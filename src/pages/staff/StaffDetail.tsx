@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 
-
 interface StaffDetail {
   id: string
   firstName: string
@@ -44,7 +43,8 @@ interface StaffActivity {
 
 const ALL_ROLES = [
   'DOCTOR', 'NURSES', 'LAB_SCIENTIST', 'IMAGING_TECH', 'PHARMACIST',
-  'RECEPTIONIST', 'BILLING_OFFICER', 'HIM_OFFICER', 'MANAGER', 'IT_SUPPORT',
+  'PROCUREMENT_OFFICER', 'RECEPTIONIST', 'BILLING_OFFICER', 'HIM_OFFICER',
+  'MANAGER', 'ADMIN', 'IT_SUPPORT',
 ]
 
 const DEPARTMENTS = [
@@ -92,18 +92,17 @@ export default function StaffDetail() {
   })
 
   const updateMut = useMutation({
-    mutationFn: (data: Partial<StaffDetail>) => api.put(`/staff/${id}`, data),
+    mutationFn: (data: any) => api.put(`/staff/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', id] })
       queryClient.invalidateQueries({ queryKey: ['staff'] })
-      toast.success('Staff updated')
-      setIsEditing(false)
+      toast.success('Profile updated')
     },
-    onError: () => toast.error('Failed to update'),
+    onError: () => toast.error('Failed to update profile'),
   })
 
   const permissionsMut = useMutation({
-    mutationFn: (data: Partial<StaffDetail>) => api.patch(`/staff/${id}`, data),
+    mutationFn: (data: any) => api.patch(`/staff/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', id] })
       toast.success('Permissions updated')
@@ -133,6 +132,28 @@ export default function StaffDetail() {
   }
 
   const fullName = `${staff.firstName} ${staff.lastName}`
+
+  const handleSaveEdit = async () => {
+    const profileData: any = {}
+    if (editData.firstName !== undefined && editData.firstName !== staff.firstName) profileData.firstName = editData.firstName
+    if (editData.lastName !== undefined && editData.lastName !== staff.lastName) profileData.lastName = editData.lastName
+    if (editData.phoneNumber !== undefined) profileData.phoneNumber = editData.phoneNumber || null
+    if (editData.department !== undefined && editData.department !== staff.department) profileData.department = editData.department || null
+
+    const roleChanged = editData.role !== undefined && editData.role !== staff.role
+
+    try {
+      if (Object.keys(profileData).length > 0) {
+        await updateMut.mutateAsync(profileData)
+      }
+      if (roleChanged) {
+        await permissionsMut.mutateAsync({ role: editData.role })
+      }
+      setIsEditing(false)
+    } catch {
+      // Errors handled by onError callbacks
+    }
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -198,7 +219,7 @@ export default function StaffDetail() {
               icon={isEditing ? Save : UserCog}
               onClick={() => {
                 if (isEditing) {
-                  updateMut.mutate(editData)
+                  handleSaveEdit()
                 } else {
                   setEditData({
                     firstName: staff.firstName,

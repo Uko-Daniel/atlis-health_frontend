@@ -7,6 +7,7 @@ export type StaffRole =
   | 'IMAGING_TECH'
   | 'PHARMACIST'
   | 'RECEPTIONIST'
+  | 'PROCUREMENT_OFFICER'
   | 'BILLING_OFFICER'
   | 'HIM_OFFICER'
   | 'MANAGER'

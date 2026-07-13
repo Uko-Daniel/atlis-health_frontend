@@ -19,6 +19,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import AddStaffModal from '@/components/staff/AddStaffModal'
 import { cn } from '@/lib/utils'
 
 interface StaffMember {
@@ -378,24 +379,7 @@ export default function StaffManagement() {
       </Dialog>
 
       {/* Create Staff Modal — placeholder, will expand */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="max-w-md rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-[#0F172A]">
-              Add Staff Member
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-[#64748B]">
-            Staff creation form will be built here — for now, use the seed script or
-            approve sign-up requests.
-          </p>
-          <DialogFooter>
-            <ButtonPill variant="ghost" onClick={() => setShowCreateModal(false)}>
-              Close
-            </ButtonPill>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddStaffModal open={showCreateModal} onClose={() => setShowCreateModal(false)} />
     </div>
   )
 }

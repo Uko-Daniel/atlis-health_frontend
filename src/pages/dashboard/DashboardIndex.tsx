@@ -5,17 +5,21 @@ import BillingDashboard from './BillingDashboard'
 import LabDashboard from './LabDashboard'
 import ReceptionistDashboard from './ReceptionistDashboard'
 import ManagerDashboard from './ManagerDashboard'
+import HIMDashboard from './HIMDashboard'
+import ProcurementDashboard from './ProcurementDashboard'
+import NurseDashboard from './NurseDashboard'
 import PlaceholderDashboard from './PlaceholderDashboard'
 
 export default function DashboardIndex() {
   const user = useAuthStore((s) => s.user)
   const role = user?.role
+  console.log('DashboardIndex: user role =', role)
 
   switch (role) {
     case 'DOCTOR':
       return <DoctorDashboard />
     case 'NURSES':
-      return <PlaceholderDashboard role="Nurse" />
+      return <NurseDashboard />
     case 'LAB_SCIENTIST':
       return <LabDashboard />
     case 'IMAGING_TECH':
@@ -27,7 +31,7 @@ export default function DashboardIndex() {
     case 'BILLING_OFFICER':
       return <BillingDashboard />
     case 'HIM_OFFICER':
-      return <PlaceholderDashboard role="HIM Officer" />
+      return <HIMDashboard />
     case 'MANAGER':
       return <ManagerDashboard />
     case 'ADMIN':
@@ -35,7 +39,7 @@ export default function DashboardIndex() {
     case 'SUPER_ADMIN':
       return <ManagerDashboard />
     case 'PROCUREMENT_OFFICER':
-      return <PlaceholderDashboard role="Procurement Officer" />
+      return <ProcurementDashboard />
     case 'IT_SUPPORT':
       return <PlaceholderDashboard role="IT Support" />
     default:

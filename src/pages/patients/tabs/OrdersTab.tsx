@@ -7,8 +7,8 @@ import { ORDER_STATUS_LABELS, type OrderStatus } from '@/types/order'
 import { StatusBadge } from '@/components/ui/atoms/StatusBadge'
 import { ButtonPill }  from '@/components/ui/atoms/ButtonPill'
 import { Skeleton }    from '@/components/ui/skeleton'
-import { useAuthStore } from '@/stores/authStore'
 import CreateOrderModal from '@/components/patients/CreateOrderModal'
+import { usePermission } from '@/hooks/usePermission'
 
 function naira(n: number) {
   return `₦${n.toLocaleString('en-NG', { minimumFractionDigits: 0 })}`
@@ -30,8 +30,7 @@ const STATUS_BORDER: Record<OrderStatus, string> = {
 export default function OrdersTab() {
   const { id }   = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const user     = useAuthStore((s) => s.user)
-  const canOrder = ['DOCTOR'].includes(user?.role ?? '')
+  const canOrderTests = usePermission('allowOrderTest')
   const [modalOpen, setModalOpen] = useState(false)
 
   const { data: orders, isLoading, isError } = useQuery({
@@ -51,7 +50,7 @@ export default function OrdersTab() {
             {orders?.length ?? 0} order{orders?.length !== 1 ? 's' : ''} placed
           </p>
         </div>
-        {canOrder && (
+        {canOrderTests && (
           <ButtonPill
             variant="primary"
             size="sm"
@@ -91,7 +90,7 @@ export default function OrdersTab() {
           <p className="text-xs text-[#94A3B8] mt-1 max-w-xs mx-auto">
             Lab, imaging, and procedure orders for this patient will appear here
           </p>
-          {canOrder && (
+          {canOrderTests && (
             <ButtonPill
               variant="subtle"
               size="sm"

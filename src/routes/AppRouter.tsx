@@ -42,6 +42,7 @@ import TemplatesPage from '@/pages/template/TemplatesPage'
 import TemplateDetail from '@/pages/template/TemplatesDetail'
 import TemplateEditor from '@/pages/template/TemplateEditor'
 
+import RequestPortal from '@/pages/requests/RequestPortal'
 
 
 
@@ -106,6 +107,8 @@ export default function AppRouter() {
 
             {/* Encounter Workspace */}
             <Route path="/encounters/:id" element={<EncounterWorkspace />} />
+
+            <Route path="/requests" element={<RequestPortal />} />
 
             {/* Result editor */}
             <Route path="/editor/:resultId" element={<ResultEditor />} />

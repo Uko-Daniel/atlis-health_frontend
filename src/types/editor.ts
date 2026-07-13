@@ -5,6 +5,7 @@ export type FieldType =
   | 'multiselect'
   | 'richtext'
   | 'calculated'
+  | 'image'
   | 'boolean'
 
 export type FieldFlag = 'H' | 'L' | 'C' | 'N' | null

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   LayoutTemplate, Search, FlaskConical, Scan, FileText,
-  ChevronRight, Edit2, Trash2, AlertTriangle, CheckCircle,
+  ChevronRight, Edit2, Trash2, AlertTriangle, CheckCircle, Plus
 } from 'lucide-react'
 import { getTemplates, deactivateTemplate, activateTemplate } from '@/services/templateService'
 import { useAuthStore } from '@/stores/authStore'
@@ -31,7 +31,8 @@ export default function TemplatesPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const canManage = ['IT_SUPPORT', 'ADMIN'].includes(user?.role ?? '')
+  const canManage = ['IT_SUPPORT', 'ADMIN', 'IMAGING_TECH', 'LAB_SCIENTIST'].includes(user?.role ?? '')
+  const canCreate = ['ADMIN', 'IT_SUPPORT', 'LAB_SCIENTIST', 'IMAGING_TECH'].includes(user?.role ?? '')
 
   const [search, setSearch] = useState('')
   const [deptFilter, setDeptFilter] = useState('ALL')
@@ -58,11 +59,18 @@ export default function TemplatesPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-5">
-      <div>
-        <h2 className="text-lg font-bold text-[#0F172A]">Templates</h2>
-        <p className="text-sm text-[#64748B] mt-0.5">
-          Result templates for lab and imaging services
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-[#0F172A]">Templates</h2>
+          <p className="text-sm text-[#64748B] mt-0.5">
+            Result templates for lab and imaging services
+          </p>
+        </div>
+        {canCreate && (
+          <ButtonPill variant="primary" icon={Plus} onClick={() => navigate('/templates/new')}>
+            New Template
+          </ButtonPill>
+        )}
       </div>
 
       <div className="flex gap-3">

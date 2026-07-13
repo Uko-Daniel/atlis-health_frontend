@@ -4,7 +4,7 @@ import { Upload, X, FileText, Loader2 } from 'lucide-react'
 import api from '@/lib/api'
 import { cn } from '@/lib/utils'
 
-interface UploadedFile {
+export interface UploadedFile {
   url: string
   filename: string
   mimetype: string
@@ -12,11 +12,14 @@ interface UploadedFile {
 }
 
 interface Props {
-  onUpload: (file: UploadedFile) => void
+  // Controlled mode: pass value + onChange
+  value?: UploadedFile[]
+  onChange?: (files: UploadedFile[]) => void
+  // Uncontrolled mode (backward compatible): pass onUpload + onRemove
+  onUpload?: (file: UploadedFile) => void
   onRemove?: (url: string) => void
   existingFiles?: UploadedFile[]
   accept?: string
-  maxSize?: number // bytes
   label?: string
   disabled?: boolean
   className?: string
@@ -29,14 +32,21 @@ function formatSize(bytes: number): string {
 }
 
 export function ImageUpload({
-  onUpload, onRemove, existingFiles = [],
-  accept = 'image/jpeg,image/png,image/webp,application/pdf',
+  value,
+  onChange,
+  onUpload,
+  onRemove,
+  existingFiles = [],
+  accept = 'image/jpeg,image/png,image/webp,application/pdf,application/dicom',
   label = 'Upload files',
   disabled = false,
   className,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Determine files to display: controlled value takes priority
+  const files = value ?? existingFiles
 
   const uploadMut = useMutation({
     mutationFn: async (file: File) => {
@@ -48,20 +58,16 @@ export function ImageUpload({
       return res.data as UploadedFile
     },
     onSuccess: (data) => {
-      onUpload(data)
       setError(null)
-    },
-    onError: (err: unknown) => {
-      // Narrow unknown error to possible shape returned by our api
-      const hasResponse = (e: unknown): e is { response?: { data?: { error?: string } } } =>
-        typeof e === 'object' && e !== null && 'response' in e;
-
-      if (hasResponse(err)) {
-        const msg = err.response?.data?.error
-        setError(msg ?? 'Upload failed')
-      } else {
-        setError('Upload failed')
+      if (onChange) {
+        onChange([...files, data])
+      } else if (onUpload) {
+        onUpload(data)
       }
+      if (inputRef.current) inputRef.current.value = ''
+    },
+    onError: (err: any) => {
+      setError(err?.response?.data?.error ?? 'Upload failed')
     },
   })
 
@@ -69,7 +75,14 @@ export function ImageUpload({
     const file = e.target.files?.[0]
     if (!file) return
     uploadMut.mutate(file)
-    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  const handleRemove = (url: string) => {
+    if (onChange) {
+      onChange(files.filter((f) => f.url !== url))
+    } else if (onRemove) {
+      onRemove(url)
+    }
   }
 
   const isImage = (mimetype: string) => mimetype.startsWith('image/')
@@ -77,27 +90,23 @@ export function ImageUpload({
   return (
     <div className={cn('space-y-3', className)}>
       {/* Existing files */}
-      {existingFiles.length > 0 && (
+      {files.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {existingFiles.map((file) => (
+          {files.map((file) => (
             <div
               key={file.url}
               className="relative group rounded-xl border border-[#EEF1F8] overflow-hidden bg-[#F8FAFF]"
             >
               {isImage(file.mimetype) ? (
-                <img
-                  src={file.url}
-                  alt={file.filename}
-                  className="h-24 w-24 object-cover"
-                />
+                <img src={file.url} alt={file.filename} className="h-24 w-24 object-cover" />
               ) : (
                 <div className="h-24 w-24 flex items-center justify-center">
                   <FileText size={28} className="text-[#94A3B8]" />
                 </div>
               )}
-              {onRemove && !disabled && (
+              {!disabled && (
                 <button
-                  onClick={() => onRemove(file.url)}
+                  onClick={() => handleRemove(file.url)}
                   className="absolute top-1 right-1 size-5 rounded-full bg-black/50
                              flex items-center justify-center opacity-0 group-hover:opacity-100
                              transition-opacity"
@@ -134,7 +143,6 @@ export function ImageUpload({
           )}
           {uploadMut.isPending ? 'Uploading…' : label}
         </button>
-
         <input
           ref={inputRef}
           type="file"
@@ -142,10 +150,7 @@ export function ImageUpload({
           onChange={handleFile}
           className="hidden"
         />
-
-        {error && (
-          <p className="text-xs text-red-500">{error}</p>
-        )}
+        {error && <p className="text-xs text-red-500">{error}</p>}
       </div>
     </div>
   )

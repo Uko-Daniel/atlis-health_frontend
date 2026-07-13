@@ -8,11 +8,11 @@ import {
   Settings,
   ListChecks,
   ClipboardList,
-  FlaskConical
+  FlaskConical,
+  CreditCard
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { StaffRole } from '@/types/auth'
-
 export interface NavItem {
   label: string
   path: string
@@ -74,6 +74,18 @@ export const NAV_ITEMS: NavItem[] = [
     path:  '/worklist',
     icon:  ListChecks,
     allowedRoles: ['LAB_SCIENTIST', 'IMAGING_TECH', 'ADMIN', 'IT_SUPPORT'],
+  },
+  {
+    label: 'Billing',
+    path:  '/settings/billing',
+    icon:  CreditCard,
+    allowedRoles: ['BILLING_OFFICER', 'ADMIN', 'MANAGER'],
+  },
+  {
+    label: 'Requests',
+    path: '/requests',
+    icon: ClipboardList,
+    allowedRoles: ALL_ROLES, // Everyone can access
   },
   {
     label: 'Results',

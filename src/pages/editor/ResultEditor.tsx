@@ -21,6 +21,7 @@ import type {
 import EditorHeader from '@/components/editor/EditorHeader'
 import EditorField  from '@/components/editor/EditorField'
 import { ImageUpload } from '@/components/ui/molecules/ImageUpload'
+import type { UploadedFile } from '@/components/ui/molecules/ImageUpload'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn }       from '@/lib/utils'
 
@@ -74,13 +75,6 @@ interface SimpleTemplateField {
   range?: string
 }
 
-interface UploadedFile {
-  url: string
-  filename: string
-  mimetype: string
-  size: number
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
@@ -89,12 +83,10 @@ function normalizeSchema(raw: unknown): NormalizedGroup[] | null {
   if (!raw) return null
   if (!isRecord(raw)) return null
 
-  // Proper groups format
   if (raw.groups && Array.isArray(raw.groups)) {
     return raw.groups as NormalizedGroup[]
   }
 
-  // Simple fields format — wrap in a single group
   if (raw.fields && Array.isArray(raw.fields)) {
     return [{
       id: 'default-group',
@@ -104,13 +96,19 @@ function normalizeSchema(raw: unknown): NormalizedGroup[] | null {
         const f = isRecord(field) ? field as SimpleTemplateField : {}
         const name = f.name ?? `field-${i}`
 
+        // Determine type: use explicit type if provided, otherwise infer from field properties
+        let fieldType: SchemaField['type'] = 'text'
+        if (f.type === 'image') fieldType = 'image'
+        else if (f.type === 'boolean') fieldType = 'boolean'
+        else if (f.type === 'numeric' || f.range) fieldType = 'numeric'
+
         return {
           id: name,
           key: name,
           label: f.name
             ?.replace(/_/g, ' ')
             .replace(/\b\w/g, (c: string) => c.toUpperCase()) ?? `Field ${i + 1}`,
-          type: f.type === 'text' ? 'text' : f.type === 'boolean' ? 'boolean' : 'numeric',
+          type: fieldType,
           unit: f.unit ?? undefined,
           required: false,
           referenceRange: f.range ? { default: parseRange(f.range) } : undefined,
@@ -148,7 +146,6 @@ export default function ResultEditor() {
   const [isSubmitting,   setIsSubmitting]   = useState(false)
   const [submitError,    setSubmitError]    = useState<string | null>(null)
   const [missingFields,  setMissingFields]  = useState<string[]>([])
-  const [uploadedFiles,  setUploadedFiles]  = useState<UploadedFile[]>([])
 
   const autoSaveRef  = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
@@ -166,25 +163,21 @@ export default function ResultEditor() {
     enabled:  !!resultId,
   })
 
-  // Normalize the raw dataSchema from the template
   const rawSchema = result?.template?.dataSchema as Record<string, unknown> | undefined
   const schema = useMemo(
     () => (rawSchema ? normalizeSchema(rawSchema) : null),
     [rawSchema],
   )
-  const isImaging = result?.template?.type === 'IMAGING'
 
   const patientName = result?.patient
     ? `${result.patient.firstName} ${result.patient.lastName}`
     : '—'
 
-  // Keep refs in sync
   useEffect(() => { draftRef.current     = draft },      [draft])
   useEffect(() => { sessionRef.current   = sessionOpen }, [sessionOpen])
   useEffect(() => { patientIdRef.current = result?.patientId ?? '' }, [result?.patientId])
   useEffect(() => { schemaRef.current    = schema },      [schema])
 
-  // ── Build DataSchema for flatToGroups conversion ──────────
   const dataSchema: DataSchema | null = useMemo(
     () => schema
       ? {
@@ -219,7 +212,6 @@ export default function ResultEditor() {
     [schema],
   )
 
-  // ── Save function — converts flat draft to groups for backend ──
   const doSave = useCallback(async () => {
     const rid = resultIdRef.current
     const pid = patientIdRef.current
@@ -238,7 +230,6 @@ export default function ResultEditor() {
     }
   }, [dataSchema])
 
-  // ── Open session on mount ──────────────────────────────────
   useEffect(() => {
     if (!resultId || !result || !schema) return
 
@@ -253,15 +244,12 @@ export default function ResultEditor() {
         sessionRef.current = true
 
         if (session.draftData && schema) {
-          const draftData = session.draftData as { groups?: DraftGroup[]; interpretation?: string; images?: UploadedFile[] }
+          const draftData = session.draftData as { groups?: DraftGroup[]; interpretation?: string }
           if (draftData.groups) {
             const flat = groupsToFlat(draftData.groups, draftData.interpretation)
             setDraft(flat)
             draftRef.current = flat
             if (draftData.interpretation) setInterpretation(draftData.interpretation)
-          }
-          if (draftData.images) {
-            setUploadedFiles(draftData.images)
           }
         }
       })
@@ -276,17 +264,14 @@ export default function ResultEditor() {
       clearInterval(heartbeatRef.current)
       Object.values(timers).forEach(clearTimeout)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultId, result?.id, !!schema])
 
-  // ── Auto-save interval ────────────────────────────────────
   useEffect(() => {
     if (!sessionOpen || !resultId) return
     autoSaveRef.current = setInterval(doSave, AUTOSAVE_INTERVAL)
     return () => clearInterval(autoSaveRef.current)
   }, [sessionOpen, resultId, doSave])
 
-  // ── Heartbeat interval ────────────────────────────────────
   useEffect(() => {
     if (!sessionOpen || !resultId) return
     heartbeatRef.current = setInterval(() => {
@@ -295,7 +280,6 @@ export default function ResultEditor() {
     return () => clearInterval(heartbeatRef.current)
   }, [sessionOpen, resultId])
 
-  // ── beforeunload ──────────────────────────────────────────
   useEffect(() => {
     const handler = () => {
       if (resultIdRef.current) {
@@ -309,13 +293,11 @@ export default function ResultEditor() {
     return () => window.removeEventListener('beforeunload', handler)
   }, [])
 
-  // ── Field change handler ──────────────────────────────────
   const handleFieldChange = (key: string, value: unknown) => {
     const newDraft = { ...draftRef.current, [key]: value }
     setDraft(newDraft)
     draftRef.current = newDraft
 
-    // Debounced flag call
     if (typeof value === 'number' || value === null) {
       clearTimeout(flagTimers.current[key])
       flagTimers.current[key] = setTimeout(async () => {
@@ -330,13 +312,10 @@ export default function ResultEditor() {
         try {
           const res = await flagField(rid, field.id, value, pid)
           setFlags((prev) => ({ ...prev, [key]: res.flag }))
-        } catch {
-          // silently ignore
-        }
+        } catch {}
       }, FLAG_DEBOUNCE)
     }
 
-    // Formula recalculation
     const sch = schemaRef.current
     const isFormulaInput = sch
       ?.flatMap((g) => g.fields)
@@ -360,7 +339,6 @@ export default function ResultEditor() {
     }
   }
 
-  // ── Submit ────────────────────────────────────────────────
   const handleSubmit = async () => {
     const rid = resultIdRef.current
     const pid = patientIdRef.current
@@ -373,15 +351,9 @@ export default function ResultEditor() {
 
     try {
       const { groups } = flatToGroups(draftRef.current, dataSchema)
-      const draftPayload: DraftData = {
-        schemaVersion: 1,
-        groups,
-        interpretation,
-        images: uploadedFiles,
-      }
       const res = await submitResult(
         rid,
-        draftPayload,
+        { schemaVersion: 1, groups, interpretation },
         pid,
         interpretation || undefined,
       )
@@ -414,7 +386,6 @@ export default function ResultEditor() {
     setCollapsed((prev) => ({ ...prev, [groupId]: !prev[groupId] }))
   }
 
-  // ── Render guards ─────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="space-y-4 p-6">
@@ -429,10 +400,7 @@ export default function ResultEditor() {
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
           <p className="text-red-500 font-medium">Result not found</p>
-          <button onClick={() => navigate(-1)}
-            className="mt-2 text-sm text-slate-500 underline">
-            Go back
-          </button>
+          <button onClick={() => navigate(-1)} className="mt-2 text-sm text-slate-500 underline">Go back</button>
         </div>
       </div>
     )
@@ -441,21 +409,13 @@ export default function ResultEditor() {
   if (sessionError) {
     return (
       <div className="-m-6 min-h-full bg-[#EBEBFF] p-6">
-        <div className="max-w-lg mx-auto mt-16 bg-white rounded-2xl p-8
-                        shadow-sm text-center space-y-3">
-          <div className="flex size-14 items-center justify-center
-                          rounded-full bg-amber-100 mx-auto">
+        <div className="max-w-lg mx-auto mt-16 bg-white rounded-2xl p-8 shadow-sm text-center space-y-3">
+          <div className="flex size-14 items-center justify-center rounded-full bg-amber-100 mx-auto">
             <AlertTriangle size={24} className="text-amber-600" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-800">
-            Cannot open editor
-          </h3>
+          <h3 className="text-lg font-semibold text-slate-800">Cannot open editor</h3>
           <p className="text-sm text-slate-500">{sessionError}</p>
-          <button onClick={() => navigate(-1)}
-            className="px-6 py-2 bg-slate-900 text-white rounded-xl
-                       text-sm font-medium hover:bg-slate-700 transition-colors">
-            Go back
-          </button>
+          <button onClick={() => navigate(-1)} className="px-6 py-2 bg-slate-900 text-white rounded-xl text-sm font-medium hover:bg-slate-700 transition-colors">Go back</button>
         </div>
       </div>
     )
@@ -464,21 +424,11 @@ export default function ResultEditor() {
   if (!schema || schema.length === 0) {
     return (
       <div className="-m-6 min-h-full bg-[#EBEBFF] p-6">
-        <div className="max-w-lg mx-auto mt-16 bg-white rounded-2xl p-8
-                        shadow-sm text-center space-y-3">
+        <div className="max-w-lg mx-auto mt-16 bg-white rounded-2xl p-8 shadow-sm text-center space-y-3">
           <AlertTriangle size={24} className="text-amber-600 mx-auto" />
-          <h3 className="text-lg font-semibold text-slate-800">
-            No template configured
-          </h3>
-          <p className="text-sm text-slate-500">
-            This service doesn't have a result template yet.
-            Ask an administrator to create one.
-          </p>
-          <button onClick={() => navigate(-1)}
-            className="px-6 py-2 bg-slate-900 text-white rounded-xl
-                       text-sm font-medium hover:bg-slate-700 transition-colors">
-            Go back
-          </button>
+          <h3 className="text-lg font-semibold text-slate-800">No template configured</h3>
+          <p className="text-sm text-slate-500">This service doesn't have a result template yet. Ask an administrator to create one.</p>
+          <button onClick={() => navigate(-1)} className="px-6 py-2 bg-slate-900 text-white rounded-xl text-sm font-medium hover:bg-slate-700 transition-colors">Go back</button>
         </div>
       </div>
     )
@@ -486,54 +436,30 @@ export default function ResultEditor() {
 
   return (
     <div className="-m-6 min-h-full bg-[#EBEBFF]">
-
       <EditorHeader
-        templateName ={result.template?.name ?? 'Result Editor'}
-        patientName  ={patientName}
-        saveStatus   ={saveStatus}
-        isSubmitting ={isSubmitting}
-        onSave       ={doSave}
-        onSubmit     ={handleSubmit}
-        onClose      ={handleClose}
+        templateName={result.template?.name ?? 'Result Editor'}
+        patientName={patientName}
+        saveStatus={saveStatus}
+        isSubmitting={isSubmitting}
+        onSave={doSave}
+        onSubmit={handleSubmit}
+        onClose={handleClose}
       />
 
       <div className="p-6 space-y-4 max-w-3xl mx-auto">
-
         {submitError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl
-                          px-4 py-3 text-sm text-red-600">
+          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
             <p className="font-medium">{submitError}</p>
             {missingFields.length > 0 && (
               <ul className="mt-1.5 space-y-0.5">
-                {missingFields.map((f) => (
-                  <li key={f} className="text-xs">· {f}</li>
-                ))}
+                {missingFields.map((f) => (<li key={f} className="text-xs">· {f}</li>))}
               </ul>
             )}
           </div>
         )}
 
-        {/* ── Image Upload (imaging templates only) ────────── */}
-        {isImaging && (
-          <div className="bg-white rounded-2xl shadow-sm p-5">
-            <h3 className="text-sm font-semibold text-slate-700 mb-3">
-              Scan Images
-            </h3>
-            <ImageUpload
-              onUpload={(file) => setUploadedFiles((prev) => [...prev, file])}
-              onRemove={(url) => setUploadedFiles((prev) => prev.filter((f) => f.url !== url))}
-              existingFiles={uploadedFiles}
-              accept="image/jpeg,image/png,image/webp,application/dicom"
-              label="Upload scan"
-              disabled={!sessionOpen}
-            />
-          </div>
-        )}
-
         {schema.map((group) => (
-          <div key={group.id}
-               className="bg-white rounded-2xl shadow-sm overflow-hidden">
-
+          <div key={group.id} className="bg-white rounded-2xl shadow-sm overflow-hidden">
             <button
               type="button"
               onClick={() => group.collapsible && toggleGroup(group.id)}
@@ -543,9 +469,7 @@ export default function ResultEditor() {
                 group.collapsible && 'hover:bg-slate-50 transition-colors',
               )}
             >
-              <h3 className="text-sm font-semibold text-slate-700">
-                {group.label}
-              </h3>
+              <h3 className="text-sm font-semibold text-slate-700">{group.label}</h3>
               {group.collapsible && (
                 collapsed[group.id]
                   ? <span className="text-slate-400 text-xs">Show</span>
@@ -554,42 +478,59 @@ export default function ResultEditor() {
             </button>
 
             {!collapsed[group.id] && (
-              <div className={cn(
-                'p-5',
-                'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4',
-              )}>
-                {group.fields.map((field) => (
-                  <EditorField
-                    key      ={field.id}
-                    field    ={field}
-                    value    ={draft[field.key]}
-                    flag     ={flags[field.key] ?? null}
-                    onChange ={handleFieldChange}
-                    disabled ={!sessionOpen}
-                  />
-                ))}
+              <div className="p-5 space-y-4">
+                {group.fields.map((field) => {
+                  // ── Image fields: render ImageUpload ──────
+                  if (field.type === 'image') {
+                    const images = (draft[field.key] as UploadedFile[]) ?? []
+                    return (
+                      <div key={field.id} className="bg-white rounded-xl border border-[#EEF1F8] p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <p className="text-sm font-medium text-slate-700">{field.label}</p>
+                            {field.required && <span className="text-xs text-red-500">Required</span>}
+                          </div>
+                          <span className="text-xs text-[#94A3B8]">{images.length} file{images.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <ImageUpload
+                          value={images}
+                          onChange={(files) => handleFieldChange(field.key, files)}
+                          disabled={!sessionOpen}
+                          accept="image/jpeg,image/png,image/webp,application/dicom"
+                          label="Upload scan"
+                        />
+                      </div>
+                    )
+                  }
+
+                  // ── Regular fields: render EditorField ────
+                  return (
+                    <EditorField
+                      key={field.id}
+                      field={field}
+                      value={draft[field.key]}
+                      flag={flags[field.key] ?? null}
+                      onChange={handleFieldChange}
+                      disabled={!sessionOpen}
+                    />
+                  )
+                })}
               </div>
             )}
           </div>
         ))}
 
         <div className="bg-white rounded-2xl shadow-sm p-5 space-y-3">
-          <h3 className="text-sm font-semibold text-slate-700">
-            Interpretation
-          </h3>
+          <h3 className="text-sm font-semibold text-slate-700">Interpretation</h3>
           <textarea
             value={interpretation}
             onChange={(e) => setInterpretation(e.target.value)}
             rows={4}
             placeholder="Enter clinical interpretation…"
             disabled={!sessionOpen}
-            className="w-full rounded-xl border border-slate-200 px-4 py-3
-                       text-sm text-slate-800 placeholder:text-slate-400
-                       focus:outline-none focus:ring-2 focus:ring-indigo-300
-                       resize-none disabled:bg-slate-50"
+            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none disabled:bg-slate-50"
           />
         </div>
-
       </div>
     </div>
   )
